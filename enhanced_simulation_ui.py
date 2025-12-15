@@ -224,102 +224,37 @@ def generate_mock_results(params):
 
 
 def generate_enhanced_plots(results):
-    """Generate comprehensive plots for enhanced simulation with focal and neighborhood populations"""
-    from matplotlib.gridspec import GridSpec
+    """Generate population plot only"""
 
-    fig = plt.figure(figsize=(18, 14))
-    gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.25)
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     days_in_years = [d / 365 for d in results['days']]
 
-    # Plot 1: Focal vs Neighborhood Populations
-    ax1 = fig.add_subplot(gs[0, :])
+    # Only plot: Focal vs Neighborhood Populations
     if 'focal_population_sizes' in results:
-        ax1.plot(days_in_years, results['focal_population_sizes'], 'b-', linewidth=2.5, label='Focal Population (Managed)', marker='o', markersize=3)
-        ax1.plot(days_in_years, results['neighborhood_population_sizes'], 'orange', linewidth=2.5, label='Neighborhood Population (Unmanaged)', marker='s', markersize=3)
-        ax1.set_title('Focal vs. Neighborhood Populations Over Time', fontsize=16, fontweight='bold')
+        ax.plot(days_in_years, results['focal_population_sizes'], 'b-', linewidth=3,
+                label='Focal Population (Managed)', marker='o', markersize=4)
+        ax.plot(days_in_years, results['neighborhood_population_sizes'], 'orange', linewidth=3,
+                label='Neighborhood Population (Unmanaged)', marker='s', markersize=4)
+        ax.set_title('Population Dynamics Over Time', fontsize=18, fontweight='bold', pad=20)
     else:
-        ax1.plot(days_in_years, results['population_sizes'], 'b-', linewidth=2.5)
-        ax1.set_title('Total Population Over Time', fontsize=16, fontweight='bold')
-    ax1.set_xlabel('Years', fontsize=13)
-    ax1.set_ylabel('Population Size', fontsize=13)
-    ax1.legend(fontsize=11, loc='best')
-    ax1.grid(True, alpha=0.3)
+        ax.plot(days_in_years, results['population_sizes'], 'b-', linewidth=3, marker='o', markersize=4)
+        ax.set_title('Population Over Time', fontsize=18, fontweight='bold', pad=20)
 
-    # Plot 2: Reproductive status (Focal population only)
-    ax2 = fig.add_subplot(gs[1, 0])
-    ax2.plot(days_in_years, results['females_in_estrus'], 'r-', linewidth=2, label='In Estrus')
-    ax2.plot(days_in_years, results['pregnant_females'], 'g-', linewidth=2, label='Pregnant')
-    ax2.set_title('Female Reproductive Status (Focal)', fontsize=14, fontweight='bold')
-    ax2.set_xlabel('Years', fontsize=12)
-    ax2.set_ylabel('Number of Females', fontsize=12)
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
+    ax.set_xlabel('Years', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Population Size', fontsize=14, fontweight='bold')
+    ax.legend(fontsize=12, loc='best', frameon=True, shadow=True)
+    ax.grid(True, alpha=0.3, linestyle='--')
 
-    # Plot 3: Immigration & Dispersal
-    ax3 = fig.add_subplot(gs[1, 1])
-    if 'immigrants' in results:
-        ax3.plot(days_in_years, results['immigrants'], 'purple', linewidth=2, label='Immigration', alpha=0.7)
-        ax3.plot(days_in_years, results['emigrants'], 'brown', linewidth=2, label='Emigration', alpha=0.7)
-        ax3.plot(days_in_years, results['abandoned_kittens'], 'pink', linewidth=2, label='Abandoned Kittens', alpha=0.7)
-        ax3.set_title('Population Movement', fontsize=14, fontweight='bold')
-        ax3.set_xlabel('Years', fontsize=12)
-        ax3.set_ylabel('Number of Cats', fontsize=12)
-        ax3.legend()
-        ax3.grid(True, alpha=0.3)
-    else:
-        # Fallback: Male monopolization
-        ax3.plot(days_in_years, results['males_monopolizing'], 'm-', linewidth=2)
-        ax3.set_title('Males Monopolizing Females', fontsize=14, fontweight='bold')
-        ax3.set_xlabel('Years', fontsize=12)
-        ax3.set_ylabel('Number of Males', fontsize=12)
-        ax3.grid(True, alpha=0.3)
-
-    # Plot 4: Summary statistics
-    ax4 = fig.add_subplot(gs[2, :])
-    ax4.axis('off')
-
+    # Add summary text below the plot
     if 'focal_population_sizes' in results:
-        summary_text = f"""
-    SIMULATION SUMMARY
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        summary = (f"Initial Focal: {results['focal_population_sizes'][0]:,}  →  "
+                  f"Final Focal: {results['focal_population_sizes'][-1]:,}  "
+                  f"({((results['focal_population_sizes'][-1] - results['focal_population_sizes'][0]) / results['focal_population_sizes'][0] * 100):+.1f}% change)")
+        ax.text(0.5, -0.15, summary, transform=ax.transAxes,
+               fontsize=11, ha='center', style='italic')
 
-    FOCAL POPULATION (Managed with Fertility Control):
-      Initial: {results['focal_population_sizes'][0]:,}  →  Final: {results['focal_population_sizes'][-1]:,}
-      Change: {results['focal_population_sizes'][-1] - results['focal_population_sizes'][0]:+,} ({((results['focal_population_sizes'][-1] - results['focal_population_sizes'][0]) / results['focal_population_sizes'][0] * 100):+.1f}%)
-
-    NEIGHBORHOOD POPULATION (Unmanaged):
-      Initial: {results['neighborhood_population_sizes'][0]:,}  →  Final: {results['neighborhood_population_sizes'][-1]:,}
-
-    REPRODUCTION:
-      Total Births (Focal): {results['total_births']:,}
-      Kitten Survival Rate: {results['kitten_survival_rate']*100:.1f}%
-      Avg Females in Estrus: {sum(results['females_in_estrus'])//len(results['females_in_estrus'])}
-      Avg Pregnant Females: {sum(results['pregnant_females'])//len(results['pregnant_females'])}
-
-    MOVEMENT (over {len(results['days'])/365:.1f} years):
-      Total Immigration: {results.get('total_immigrants', 0):,} cats
-      Total Emigration: {results.get('total_emigrants', 0):,} cats
-      Total Abandoned Kittens: {results.get('total_abandoned', 0):,}
-      Net Change from Movement: {results.get('total_immigrants', 0) + results.get('total_abandoned', 0) - results.get('total_emigrants', 0):+,}
-    """
-    else:
-        summary_text = f"""
-    SIMULATION SUMMARY
-
-    Total Births: {results['total_births']:,}
-    Kitten Survival: {results['kitten_survival_rate']*100:.1f}%
-
-    Final Population: {results['population_sizes'][-1]:,}
-
-    Average Females in Estrus: {sum(results['females_in_estrus'])//len(results['females_in_estrus'])}
-    Average Pregnant: {sum(results['pregnant_females'])//len(results['pregnant_females'])}
-    """
-
-    ax4.text(0.05, 0.5, summary_text, fontsize=11, family='monospace',
-             verticalalignment='center')
-
-    plt.suptitle('Enhanced Population Simulation Results', fontsize=18, fontweight='bold', y=0.995)
+    plt.tight_layout()
 
     # Convert to base64
     buffer = io.BytesIO()

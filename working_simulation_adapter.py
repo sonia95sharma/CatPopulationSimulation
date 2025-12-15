@@ -93,12 +93,29 @@ def run_adapted_simulation(params):
 
         # Mature breeding population (85% of adults are mature)
         mature_intact_females = current_intact_females * 0.85
+        mature_treated_females = current_treated_females * 0.85
         mature_males = current_males * 0.85
 
         # Females in estrus (8 out of 21 days of cycle)
         estrus_count = 0
         if breeding_season:
             estrus_count = mature_intact_females * (8.0 / 21.0)
+
+        # AMH MONOPOLIZATION EFFECT
+        # AMH-treated females still cycle and monopolize males without getting pregnant
+        # They are in estrus for ~15 days per 21-day cycle (longer than intact females)
+        male_availability = 1.0  # Start with 100% male availability
+
+        if scenario == 'amh' and breeding_season and mature_treated_females > 0:
+            # AMH females monopolize males for 15/21 days vs intact females' 8/21 days
+            amh_monopolization_ratio = 15.0 / 21.0  # ~71% of the time
+            intact_estrus_ratio = 8.0 / 21.0  # ~38% of the time
+
+            # Calculate competitive advantage: AMH females tie up males more
+            # Reduce male availability based on ratio of AMH to intact females
+            amh_to_intact_ratio = mature_treated_females / max(mature_intact_females, 1)
+            male_reduction = amh_to_intact_ratio * (amh_monopolization_ratio / intact_estrus_ratio)
+            male_availability = 1.0 / (1.0 + male_reduction * 0.5)  # Reduce by competition effect
 
         # Breeding in this 6-month timestep
         # Paper: litters_per_year parameter controls breeding rate
@@ -107,8 +124,8 @@ def run_adapted_simulation(params):
 
         if breeding_season and mature_intact_females > 0 and mature_males > 0:
             # Number of litters per female in this 6-month period
-            # litters_per_year = 1.4, so 0.7 litters per 6 months
-            kitten_count = mature_intact_females * (litters_per_year / 2.0) * mean_litter_size
+            # Adjusted by male availability (reduced if AMH females monopolize males)
+            kitten_count = mature_intact_females * (litters_per_year / 2.0) * mean_litter_size * male_availability
             total_births += kitten_count
         else:
             kitten_count = 0
@@ -186,10 +203,23 @@ def run_adapted_simulation(params):
     days = list(range(0, simulation_days, sample_interval))
 
     def interpolate_to_days(timestep_data):
+        """Linearly interpolate between 6-month timesteps for smooth visualization"""
         daily_data = []
-        for i, day in enumerate(days):
-            timestep_idx = min(day // 182, len(timestep_data) - 1)
-            daily_data.append(timestep_data[timestep_idx])
+        for day in days:
+            # Which timestep period are we in?
+            timestep_float = day / 182.5  # 182.5 days per 6 months
+            timestep_idx = int(timestep_float)
+
+            # Handle edges
+            if timestep_idx >= len(timestep_data) - 1:
+                daily_data.append(timestep_data[-1])
+            else:
+                # Linear interpolation between timesteps
+                fraction = timestep_float - timestep_idx
+                value_start = timestep_data[timestep_idx]
+                value_end = timestep_data[timestep_idx + 1]
+                interpolated = value_start + (value_end - value_start) * fraction
+                daily_data.append(interpolated)
         return daily_data
 
     # Calculate survival rate
