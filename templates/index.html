@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Population Simulation Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: 800px;
+        }
+
+        .results-panel {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .control-group .description {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .plot-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 40px;
+            color: #666;
+        }
+
+        .welcome-message h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .welcome-message p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .welcome-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Population Simulation Control Panel</h1>
+            <p>Interactive tool for exploring demographic and breeding parameters</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <div class="control-section">
+                    <h3>Breeding Parameters</h3>
+
+                    <div class="control-group">
+                        <label for="proportion_females_breeding">Breeding Frequency (% Females Breeding)</label>
+                        <div class="description">Proportion of females that breed each year (0.0 - 1.0)</div>
+                        <div class="slider-container">
+                            <input type="range" id="proportion_females_breeding" min="0" max="100" value="80" step="1">
+                            <span class="value-display" id="proportion_females_breeding_value">0.80</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="mean_litter_size">Expected Litter Size (Mean)</label>
+                        <div class="description">Average number of offspring per breeding bout</div>
+                        <div class="slider-container">
+                            <input type="range" id="mean_litter_size" min="1" max="12" value="4" step="0.5">
+                            <span class="value-display" id="mean_litter_size_value">4.0</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="sd_litter_size">Litter Size Variation (Std Dev)</label>
+                        <div class="description">Standard deviation of litter size</div>
+                        <div class="slider-container">
+                            <input type="range" id="sd_litter_size" min="0" max="5" value="1.5" step="0.1">
+                            <span class="value-display" id="sd_litter_size_value">1.5</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="maximum_litter_size">Maximum Litter Size</label>
+                        <div class="description">Upper limit on number of offspring per bout</div>
+                        <div class="slider-container">
+                            <input type="range" id="maximum_litter_size" min="1" max="15" value="8" step="1">
+                            <span class="value-display" id="maximum_litter_size_value">8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Sexual Maturity</h3>
+
+                    <div class="control-group">
+                        <label for="female_breeding_age">Female Age at Sexual Maturity (years)</label>
+                        <div class="description">Minimum age females can reproduce</div>
+                        <div class="slider-container">
+                            <input type="range" id="female_breeding_age" min="0" max="5" value="1" step="1">
+                            <span class="value-display" id="female_breeding_age_value">1</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="male_breeding_age">Male Age at Sexual Maturity (years)</label>
+                        <div class="description">Minimum age males can reproduce</div>
+                        <div class="slider-container">
+                            <input type="range" id="male_breeding_age" min="0" max="5" value="1" step="1">
+                            <span class="value-display" id="male_breeding_age_value">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Fertility Control Management</h3>
+
+                    <div class="control-group">
+                        <label for="pct_females_birth_control">Females on Birth Control (%)</label>
+                        <div class="description">Non-surgical contraception - prevents pregnancy but allows cycling</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_females_birth_control" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_females_birth_control_value">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="pct_females_sterilized">Females Spayed (%)</label>
+                        <div class="description">Surgical sterilization of females (permanent)</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_females_sterilized" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_females_sterilized_value">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="pct_males_sterilized">Males Neutered (%)</label>
+                        <div class="description">Surgical sterilization of males (permanent)</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_males_sterilized" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_males_sterilized_value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Simulation Settings</h3>
+
+                    <div class="control-group">
+                        <label for="years">Simulation Duration (years)</label>
+                        <div class="description">Total years to simulate</div>
+                        <input type="number" id="years" min="10" max="200" value="50">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="iterations">Number of Iterations</label>
+                        <div class="description">Simulation runs for statistical averaging</div>
+                        <input type="number" id="iterations" min="1" max="100" value="10">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="runSimulation">Run Simulation</button>
+                <button class="btn btn-secondary" id="resetDefaults">Reset to Defaults</button>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <div class="welcome-message" id="welcomeMessage">
+                    <div class="welcome-icon">📊</div>
+                    <h2>Welcome to the Population Simulator</h2>
+                    <p>Adjust the breeding parameters, sexual maturity ages, and simulation settings on the left panel.</p>
+                    <p>Click <strong>"Run Simulation"</strong> to see how these parameters affect population dynamics over time.</p>
+                    <p>The simulation will show:</p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>📈 Population size trends</li>
+                        <li>⚠️ Extinction probability</li>
+                        <li>🧬 Genetic diversity metrics</li>
+                        <li>🔬 Heterozygosity levels</li>
+                    </ul>
+                </div>
+
+                <div class="loading" id="loadingIndicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Running simulation... This may take a moment.</p>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="results-container" id="resultsContainer">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">Simulation Results</h2>
+
+                    <div class="stats-grid" id="statsGrid"></div>
+
+                    <div class="plot-container">
+                        <img id="plotImage" src="" alt="Simulation Results">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default values
+        const defaults = {
+            proportion_females_breeding: 80,
+            mean_litter_size: 4.0,
+            sd_litter_size: 1.5,
+            maximum_litter_size: 8,
+            female_breeding_age: 1,
+            male_breeding_age: 1,
+            pct_females_birth_control: 0,
+            pct_females_sterilized: 0,
+            pct_males_sterilized: 0,
+            years: 50,
+            iterations: 10
+        };
+
+        // Update slider value displays
+        function updateSliderDisplay(sliderId, value, decimalPlaces = 2) {
+            const display = document.getElementById(sliderId + '_value');
+            if (sliderId === 'proportion_females_breeding') {
+                display.textContent = (value / 100).toFixed(2);
+            } else if (sliderId.startsWith('pct_')) {
+                // Percentage values
+                display.textContent = Math.round(value) + '%';
+            } else if (decimalPlaces === 0) {
+                display.textContent = Math.round(value);
+            } else {
+                display.textContent = parseFloat(value).toFixed(decimalPlaces);
+            }
+        }
+
+        // Initialize sliders
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', function() {
+                updateSliderDisplay(this.id, this.value, this.step < 1 ? 1 : 0);
+            });
+            // Initialize display
+            updateSliderDisplay(slider.id, slider.value, slider.step < 1 ? 1 : 0);
+        });
+
+        // Reset to defaults
+        document.getElementById('resetDefaults').addEventListener('click', function() {
+            Object.keys(defaults).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = defaults[key];
+                    if (element.type === 'range') {
+                        updateSliderDisplay(key, defaults[key], element.step < 1 ? 1 : 0);
+                    }
+                }
+            });
+        });
+
+        // Run simulation
+        document.getElementById('runSimulation').addEventListener('click', async function() {
+            const button = this;
+            button.disabled = true;
+
+            // Hide welcome and results, show loading
+            document.getElementById('welcomeMessage').style.display = 'none';
+            document.getElementById('resultsContainer').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            // Gather parameters
+            const params = {
+                proportion_females_breeding: parseFloat(document.getElementById('proportion_females_breeding').value) / 100,
+                mean_litter_size: parseFloat(document.getElementById('mean_litter_size').value),
+                sd_litter_size: parseFloat(document.getElementById('sd_litter_size').value),
+                maximum_litter_size: parseInt(document.getElementById('maximum_litter_size').value),
+                female_breeding_age: parseInt(document.getElementById('female_breeding_age').value),
+                male_breeding_age: parseInt(document.getElementById('male_breeding_age').value),
+                pct_females_birth_control: parseFloat(document.getElementById('pct_females_birth_control').value),
+                pct_females_sterilized: parseFloat(document.getElementById('pct_females_sterilized').value),
+                pct_males_sterilized: parseFloat(document.getElementById('pct_males_sterilized').value),
+                years: parseInt(document.getElementById('years').value),
+                iterations: parseInt(document.getElementById('iterations').value)
+            };
+
+            try {
+                const response = await fetch('/run_simulation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred during simulation');
+                }
+            } catch (error) {
+                showError('Failed to run simulation: ' + error.message);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                button.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const results = data.results;
+
+            // Calculate summary statistics
+            const finalPopulation = results.population_sizes[results.population_sizes.length - 1];
+            const finalExtinction = results.extinction_probability[results.extinction_probability.length - 1];
+            const finalDiversity = results.gene_diversity[results.gene_diversity.length - 1];
+            const maxPopulation = Math.max(...results.population_sizes);
+
+            // Display stats cards
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Final Population</div>
+                    <div class="stat-value">${Math.round(finalPopulation)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Max Population</div>
+                    <div class="stat-value">${Math.round(maxPopulation)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Extinction Risk</div>
+                    <div class="stat-value">${(finalExtinction * 100).toFixed(1)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Gene Diversity</div>
+                    <div class="stat-value">${finalDiversity.toFixed(3)}</div>
+                </div>
+            `;
+
+            // Display plot
+            document.getElementById('plotImage').src = 'data:image/png;base64,' + data.plots;
+
+            // Show results
+            document.getElementById('resultsContainer').classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = 'Error: ' + message;
+            errorDiv.classList.add('show');
+            document.getElementById('welcomeMessage').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

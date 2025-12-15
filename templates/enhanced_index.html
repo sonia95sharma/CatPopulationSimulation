@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Population Simulation - Detailed Biological Parameters</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: 900px;
+        }
+
+        .results-panel {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 6px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .control-group .description {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 5px;
+            border-radius: 3px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 70px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1em;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .plot-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 40px;
+            color: #666;
+        }
+
+        .welcome-message h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .welcome-message p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .welcome-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐱 Enhanced Population Simulation</h1>
+            <p>Detailed Biological Modeling: Estrous Cycles • Male Monopolization • AMH Contraception</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <!-- Estrous Cycle Parameters -->
+                <div class="control-section">
+                    <h3>Estrous Cycle</h3>
+
+                    <div class="control-group">
+                        <label for="estrous_cycle_length">Cycle Length (days)</label>
+                        <div class="description">Complete estrous cycle duration</div>
+                        <div class="slider-container">
+                            <input type="range" id="estrous_cycle_length" min="14" max="35" value="21" step="1">
+                            <span class="value-display" id="estrous_cycle_length_value">21 days</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="estrus_length">Estrus Length (days)</label>
+                        <div class="description">Days female is receptive (in heat)</div>
+                        <div class="slider-container">
+                            <input type="range" id="estrus_length" min="3" max="14" value="8" step="1">
+                            <span class="value-display" id="estrus_length_value">8 days</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sexual Maturity -->
+                <div class="control-section">
+                    <h3>Sexual Maturity Ages</h3>
+
+                    <div class="control-group">
+                        <label for="female_maturity_min_months">Female Maturity Min (months)</label>
+                        <div class="description">Earliest age females can reproduce</div>
+                        <div class="slider-container">
+                            <input type="range" id="female_maturity_min_months" min="4" max="12" value="6" step="0.1">
+                            <span class="value-display" id="female_maturity_min_months_value">6.0 months</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="female_maturity_max_months">Female Maturity Max (months)</label>
+                        <div class="description">Latest age for maturity (adds variation)</div>
+                        <div class="slider-container">
+                            <input type="range" id="female_maturity_max_months" min="6" max="15" value="8" step="0.1">
+                            <span class="value-display" id="female_maturity_max_months_value">8.0 months</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="male_maturity_months">Male Maturity (months)</label>
+                        <div class="description">Age males reach sexual maturity</div>
+                        <div class="slider-container">
+                            <input type="range" id="male_maturity_months" min="6" max="18" value="12" step="0.1">
+                            <span class="value-display" id="male_maturity_months_value">12.0 months</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breeding Season -->
+                <div class="control-section">
+                    <h3>Breeding Season</h3>
+
+                    <div class="control-group">
+                        <label for="breeding_season_start_month">Season Start (month)</label>
+                        <div class="description">First month of breeding season</div>
+                        <div class="slider-container">
+                            <input type="range" id="breeding_season_start_month" min="1" max="12" value="1" step="1">
+                            <span class="value-display" id="breeding_season_start_month_value">January</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="breeding_season_end_month">Season End (month)</label>
+                        <div class="description">Last month of breeding season</div>
+                        <div class="slider-container">
+                            <input type="range" id="breeding_season_end_month" min="1" max="12" value="9" step="1">
+                            <span class="value-display" id="breeding_season_end_month_value">September</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Male Monopolization -->
+                <div class="control-section">
+                    <h3>Male Monopolization</h3>
+
+                    <div class="control-group">
+                        <label for="monopolization_intact_days">Intact Females (days)</label>
+                        <div class="description">How long males guard cycling intact females</div>
+                        <div class="slider-container">
+                            <input type="range" id="monopolization_intact_days" min="0" max="21" value="8" step="1">
+                            <span class="value-display" id="monopolization_intact_days_value">8 days</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="monopolization_amh_days">AMH-Treated Females (days)</label>
+                        <div class="description">Monopolization for AMH contraceptive females</div>
+                        <div class="slider-container">
+                            <input type="range" id="monopolization_amh_days" min="0" max="30" value="21" step="1">
+                            <span class="value-display" id="monopolization_amh_days_value">21 days</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pregnancy Parameters -->
+                <div class="control-section">
+                    <h3>Pregnancy & Recovery</h3>
+
+                    <div class="control-group">
+                        <label for="gestation_period_days">Gestation Period (days)</label>
+                        <div class="description">Pregnancy duration</div>
+                        <div class="slider-container">
+                            <input type="range" id="gestation_period_days" min="56" max="70" value="63" step="1">
+                            <span class="value-display" id="gestation_period_days_value">63 days</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="postpartum_delay_days">Postpartum Delay (days)</label>
+                        <div class="description">Time after birth before next pregnancy possible</div>
+                        <div class="slider-container">
+                            <input type="range" id="postpartum_delay_days" min="7" max="42" value="21" step="1">
+                            <span class="value-display" id="postpartum_delay_days_value">21 days</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Litter Parameters -->
+                <div class="control-section">
+                    <h3>Breeding Parameters</h3>
+
+                    <div class="control-group">
+                        <label for="litters_per_year">Average Litters per Year</label>
+                        <div class="description">Climate dependent: Nordic (1), Temperate (2), Tropical (3)</div>
+                        <div class="slider-container">
+                            <input type="range" id="litters_per_year" min="1" max="3" value="2" step="0.1">
+                            <span class="value-display" id="litters_per_year_value">2.0</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="mean_litter_size">Mean Litter Size</label>
+                        <div class="description">Average kittens per litter</div>
+                        <div class="slider-container">
+                            <input type="range" id="mean_litter_size" min="1" max="10" value="4" step="0.5">
+                            <span class="value-display" id="mean_litter_size_value">4.0</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="sd_litter_size">Litter Size Variation (SD)</label>
+                        <div class="description">Standard deviation</div>
+                        <div class="slider-container">
+                            <input type="range" id="sd_litter_size" min="0" max="3" value="1.5" step="0.1">
+                            <span class="value-display" id="sd_litter_size_value">1.5</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="max_litter_size">Maximum Litter Size</label>
+                        <div class="description">Upper limit on kittens</div>
+                        <div class="slider-container">
+                            <input type="range" id="max_litter_size" min="1" max="15" value="8" step="1">
+                            <span class="value-display" id="max_litter_size_value">8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fertility Control -->
+                <div class="control-section">
+                    <h3>Fertility Control Management</h3>
+
+                    <div class="control-group">
+                        <label for="pct_females_amh">Females on AMH Contraceptive (%)</label>
+                        <div class="description">Anti-Müllerian Hormone - prevents pregnancy, allows cycling</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_females_amh" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_females_amh_value">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="pct_females_spayed">Females Spayed (%)</label>
+                        <div class="description">Surgical sterilization (permanent)</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_females_spayed" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_females_spayed_value">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="pct_males_neutered">Males Neutered (%)</label>
+                        <div class="description">Surgical sterilization (permanent)</div>
+                        <div class="slider-container">
+                            <input type="range" id="pct_males_neutered" min="0" max="100" value="0" step="5">
+                            <span class="value-display" id="pct_males_neutered_value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Settings -->
+                <div class="control-section">
+                    <h3>Simulation Settings</h3>
+
+                    <div class="control-group">
+                        <label for="simulation_years">Duration (years)</label>
+                        <div class="description">Total simulation length (6-20 years)</div>
+                        <div class="slider-container">
+                            <input type="range" id="simulation_years" min="6" max="20" value="10" step="1">
+                            <span class="value-display" id="simulation_years_value">10 years</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Population Structure -->
+                <div class="control-section">
+                    <h3>Population Structure</h3>
+
+                    <div class="control-group">
+                        <label for="focal_population">Focal Population (Initial)</label>
+                        <div class="description">Managed population where fertility control applies</div>
+                        <div class="slider-container">
+                            <input type="range" id="focal_population" min="10" max="500" value="50" step="5">
+                            <span class="value-display" id="focal_population_value">50</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="focal_carrying_capacity">Focal Carrying Capacity</label>
+                        <div class="description">Maximum sustainable focal population</div>
+                        <div class="slider-container">
+                            <input type="range" id="focal_carrying_capacity" min="50" max="1000" value="200" step="10">
+                            <span class="value-display" id="focal_carrying_capacity_value">200</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="neighborhood_population">Neighborhood Population (Initial)</label>
+                        <div class="description">Surrounding unmanaged population (source of immigrants)</div>
+                        <div class="slider-container">
+                            <input type="range" id="neighborhood_population" min="50" max="1000" value="200" step="10">
+                            <span class="value-display" id="neighborhood_population_value">200</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="neighborhood_carrying_capacity">Neighborhood Carrying Capacity</label>
+                        <div class="description">Maximum neighborhood population</div>
+                        <div class="slider-container">
+                            <input type="range" id="neighborhood_carrying_capacity" min="200" max="2000" value="800" step="50">
+                            <span class="value-display" id="neighborhood_carrying_capacity_value">800</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dispersal & Immigration -->
+                <div class="control-section">
+                    <h3>Dispersal & Immigration</h3>
+
+                    <div class="control-group">
+                        <label for="immigration_rate">Immigration Rate (% per 6 months)</label>
+                        <div class="description">% of neighborhood cats that move into focal area</div>
+                        <div class="slider-container">
+                            <input type="range" id="immigration_rate" min="0" max="10" value="2.0" step="0.5">
+                            <span class="value-display" id="immigration_rate_value">2.0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="dispersal_rate">Emigration Rate (% per 6 months)</label>
+                        <div class="description">% of focal cats that leave the area</div>
+                        <div class="slider-container">
+                            <input type="range" id="dispersal_rate" min="0" max="10" value="2.0" step="0.5">
+                            <span class="value-display" id="dispersal_rate_value">2.0%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="litter_abandonment_per_year">Litter Abandonment (per year)</label>
+                        <div class="description">Owned pet litters abandoned into focal population</div>
+                        <div class="slider-container">
+                            <input type="range" id="litter_abandonment_per_year" min="0" max="10" value="2" step="1">
+                            <span class="value-display" id="litter_abandonment_per_year_value">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitten Mortality Section -->
+                <div class="control-section">
+                    <h3>🐱 Kitten Mortality (Density-Dependent)</h3>
+
+                    <div class="control-group">
+                        <label for="base_kitten_mortality">Base Kitten Mortality (Low Density)</label>
+                        <div class="description">Kitten mortality at low population density (typical: 55-75%)</div>
+                        <div class="slider-container">
+                            <input type="range" id="base_kitten_mortality" min="0.50" max="0.90" value="0.75" step="0.01">
+                            <span class="value-display" id="base_kitten_mortality_value">75%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="high_density_mortality">High Density Kitten Mortality</label>
+                        <div class="description">Kitten mortality at/above carrying capacity (typical: 87-95%)</div>
+                        <div class="slider-container">
+                            <input type="range" id="high_density_mortality" min="0.70" max="0.95" value="0.87" step="0.01">
+                            <span class="value-display" id="high_density_mortality_value">87%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="runSimulation">Run Enhanced Simulation</button>
+                <button class="btn btn-secondary" id="resetDefaults">Reset to Defaults</button>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <div class="welcome-message" id="welcomeMessage">
+                    <div class="welcome-icon">🔬</div>
+                    <h2>Welcome to Enhanced Biological Modeling</h2>
+                    <p>This simulation includes detailed reproductive biology:</p>
+                    <ul style="list-style: none; padding: 20px; text-align: left; max-width: 600px; margin: 0 auto; background: #f8f9fa; border-radius: 10px;">
+                        <li style="margin: 10px 0;">✅ <strong>21-day estrous cycles</strong> with 8-day estrus periods</li>
+                        <li style="margin: 10px 0;">✅ <strong>Male monopolization</strong> (8 days intact, 21 days AMH)</li>
+                        <li style="margin: 10px 0;">✅ <strong>AMH contraception</strong> as distinct from sterilization</li>
+                        <li style="margin: 10px 0;">✅ <strong>Focal & Neighborhood populations</strong> (metapopulation dynamics)</li>
+                        <li style="margin: 10px 0;">✅ <strong>Immigration & dispersal</strong> between populations</li>
+                        <li style="margin: 10px 0;">✅ <strong>Seasonal breeding</strong> (customizable months)</li>
+                        <li style="margin: 10px 0;">✅ <strong>63-day gestation</strong> + 21-day postpartum delay</li>
+                        <li style="margin: 10px 0;">✅ <strong>All parameters adjustable</strong> via sliders</li>
+                    </ul>
+                    <p style="margin-top: 20px;">Adjust the parameters on the left and click <strong>"Run Enhanced Simulation"</strong> to see results!</p>
+
+                    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto;">
+                        <h4 style="color: #856404; margin-top: 0;">⚠️ Disclaimer</h4>
+                        <p style="color: #856404; font-size: 0.9em; line-height: 1.6; margin-bottom: 0;">
+                            This simulator is a simplified model intended for educational and exploratory purposes only.
+                            It does not capture all real-world variables and should not be used for policy decisions,
+                            medical or veterinary guidance, or other high-stakes planning.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="loading" id="loadingIndicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Running enhanced simulation... This may take a moment.</p>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="results-container" id="resultsContainer">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">Simulation Results</h2>
+
+                    <div class="stats-grid" id="statsGrid"></div>
+
+                    <div class="plot-container">
+                        <img id="plotImage" src="" alt="Simulation Results">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+                             'July', 'August', 'September', 'October', 'November', 'December'];
+
+        // Default values
+        const defaults = {
+            estrous_cycle_length: 21,
+            estrus_length: 8,
+            female_maturity_min_months: 6.0,
+            female_maturity_max_months: 8.0,
+            male_maturity_months: 12.0,
+            breeding_season_start_month: 1,
+            breeding_season_end_month: 9,
+            monopolization_intact_days: 8,
+            monopolization_amh_days: 21,
+            gestation_period_days: 63,
+            postpartum_delay_days: 21,
+            litters_per_year: 2.0,
+            mean_litter_size: 4.0,
+            sd_litter_size: 1.5,
+            max_litter_size: 8,
+            pct_females_amh: 0,
+            pct_females_spayed: 0,
+            pct_males_neutered: 0,
+            simulation_years: 10,
+            // Population structure
+            focal_population: 50,
+            focal_carrying_capacity: 200,
+            neighborhood_population: 200,
+            neighborhood_carrying_capacity: 800,
+            // Dispersal parameters
+            immigration_rate: 2.0,
+            dispersal_rate: 2.0,
+            litter_abandonment_per_year: 2,
+            // Kitten mortality (density-dependent)
+            base_kitten_mortality: 0.75,
+            high_density_mortality: 0.87
+        };
+
+        // Update slider value displays
+        function updateSliderDisplay(sliderId, value) {
+            const display = document.getElementById(sliderId + '_value');
+            if (sliderId.includes('month') && sliderId.includes('season')) {
+                const monthIndex = parseInt(value) - 1;
+                display.textContent = MONTH_NAMES[monthIndex];
+            } else if (sliderId.includes('_months')) {
+                display.textContent = parseFloat(value).toFixed(1) + ' months';
+            } else if (sliderId.includes('_days')) {
+                display.textContent = Math.round(value) + ' days';
+            } else if (sliderId.startsWith('pct_') || sliderId.includes('percentage')) {
+                display.textContent = Math.round(value) + '%';
+            } else if (sliderId.includes('mortality')) {
+                // Mortality values are 0-1, display as percentage
+                display.textContent = Math.round(parseFloat(value) * 100) + '%';
+            } else if (sliderId.includes('litter')) {
+                display.textContent = parseFloat(value).toFixed(1);
+            } else if (sliderId === 'simulation_years') {
+                display.textContent = Math.round(value) + ' years';
+            } else {
+                display.textContent = Math.round(value);
+            }
+        }
+
+        // Initialize sliders
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', function() {
+                updateSliderDisplay(this.id, this.value);
+            });
+            // Initialize display
+            updateSliderDisplay(slider.id, slider.value);
+        });
+
+        // Reset to defaults
+        document.getElementById('resetDefaults').addEventListener('click', function() {
+            Object.keys(defaults).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = defaults[key];
+                    if (element.type === 'range') {
+                        updateSliderDisplay(key, defaults[key]);
+                    }
+                }
+            });
+        });
+
+        // Run simulation
+        document.getElementById('runSimulation').addEventListener('click', async function() {
+            const button = this;
+            button.disabled = true;
+
+            // Hide welcome and results, show loading
+            document.getElementById('welcomeMessage').style.display = 'none';
+            document.getElementById('resultsContainer').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            // Gather all parameters
+            const params = {};
+            Object.keys(defaults).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'number') {
+                        params[key] = parseInt(element.value);
+                    } else {
+                        params[key] = parseFloat(element.value);
+                    }
+                }
+            });
+
+            try {
+                const response = await fetch('/run_enhanced_simulation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred during simulation');
+                }
+            } catch (error) {
+                showError('Failed to run simulation: ' + error.message);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                button.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const results = data.results;
+
+            // Display stats cards
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Final Population</div>
+                    <div class="stat-value">${results.population_sizes[results.population_sizes.length - 1]}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Births</div>
+                    <div class="stat-value">${results.total_births}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Kitten Survival</div>
+                    <div class="stat-value">${(results.kitten_survival_rate * 100).toFixed(1)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Simulation Days</div>
+                    <div class="stat-value">${results.days[results.days.length - 1]}</div>
+                </div>
+            `;
+
+            // Display plot
+            document.getElementById('plotImage').src = 'data:image/png;base64,' + data.plots;
+
+            // Show results
+            document.getElementById('resultsContainer').classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = 'Error: ' + message;
+            errorDiv.classList.add('show');
+            document.getElementById('welcomeMessage').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
