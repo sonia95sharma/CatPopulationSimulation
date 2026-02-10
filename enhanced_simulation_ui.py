@@ -4,7 +4,7 @@ Enhanced Population Simulation UI with Detailed Biological Parameters
 Includes estrous cycles, male monopolization, AMH contraception, and more
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import json
 import matplotlib
 matplotlib.use('Agg')
@@ -12,8 +12,13 @@ import matplotlib.pyplot as plt
 import io
 import base64
 from biological_parameters import DEFAULT_BIOLOGICAL_CONFIG
+from datetime import datetime
+import csv
 
 app = Flask(__name__)
+
+# Store simulation runs for comparison
+simulation_history = []
 
 @app.route('/')
 def index():
@@ -157,12 +162,16 @@ def run_enhanced_simulation():
         # Generate plots
         plot_data = generate_enhanced_plots(results)
 
-        return jsonify({
+        # Prepare response with run metadata
+        response = {
             'success': True,
             'results': results,
             'plots': plot_data,
-            'parameters_used': params
-        })
+            'parameters_used': params,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        return jsonify(response)
 
     except Exception as e:
         import traceback
@@ -302,6 +311,246 @@ def generate_enhanced_plots(results):
     plt.close()
 
     return image_base64
+
+
+@app.route('/save_run', methods=['POST'])
+def save_run():
+    """Save a simulation run for comparison"""
+    try:
+        data = request.json
+        run_name = data.get('name', f"Run {len(simulation_history) + 1}")
+
+        # Store the run
+        simulation_history.append({
+            'id': len(simulation_history),
+            'name': run_name,
+            'timestamp': datetime.now().isoformat(),
+            'results': data.get('results'),
+            'parameters': data.get('parameters'),
+            'plots': data.get('plots')
+        })
+
+        return jsonify({
+            'success': True,
+            'run_id': len(simulation_history) - 1,
+            'total_runs': len(simulation_history)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/get_saved_runs', methods=['GET'])
+def get_saved_runs():
+    """Get list of saved simulation runs"""
+    runs = [{
+        'id': run['id'],
+        'name': run['name'],
+        'timestamp': run['timestamp'],
+        'initial_pop': run['parameters'].get('focal_population', 'N/A'),
+        'years': run['parameters'].get('simulation_years', 'N/A'),
+        'final_pop': int(run['results']['focal_population_sizes'][-1]) if run['results'].get('focal_population_sizes') else 'N/A'
+    } for run in simulation_history]
+
+    return jsonify({'success': True, 'runs': runs})
+
+
+@app.route('/delete_run/<int:run_id>', methods=['DELETE'])
+def delete_run(run_id):
+    """Delete a saved simulation run"""
+    try:
+        global simulation_history
+        simulation_history = [run for run in simulation_history if run['id'] != run_id]
+        # Reassign IDs
+        for i, run in enumerate(simulation_history):
+            run['id'] = i
+        return jsonify({'success': True, 'total_runs': len(simulation_history)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/compare_runs', methods=['POST'])
+def compare_runs():
+    """Generate comparison visualization for selected runs"""
+    try:
+        data = request.json
+        run_ids = data.get('run_ids', [])
+
+        if not run_ids or len(run_ids) < 2:
+            return jsonify({'success': False, 'error': 'Please select at least 2 runs to compare'}), 400
+
+        # Get selected runs
+        selected_runs = [run for run in simulation_history if run['id'] in run_ids]
+
+        if len(selected_runs) < 2:
+            return jsonify({'success': False, 'error': 'Invalid run IDs'}), 400
+
+        # Generate comparison plot
+        comparison_plot = generate_comparison_plot(selected_runs)
+
+        # Generate summary statistics
+        comparison_data = generate_comparison_summary(selected_runs)
+
+        return jsonify({
+            'success': True,
+            'comparison_plot': comparison_plot,
+            'comparison_data': comparison_data
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+
+def generate_comparison_plot(runs):
+    """Generate a comparison plot showing multiple simulation runs"""
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+
+    colors = plt.cm.tab10(range(len(runs)))
+
+    # Plot 1: Population over time
+    for i, run in enumerate(runs):
+        results = run['results']
+        days_in_years = [d / 365 for d in results['days']]
+        ax1.plot(days_in_years, results['focal_population_sizes'],
+                linewidth=2.5, label=run['name'], color=colors[i],
+                marker='o', markersize=3, alpha=0.8)
+
+    ax1.set_title('Population Comparison Across Runs', fontsize=16, fontweight='bold', pad=15)
+    ax1.set_xlabel('Years', fontsize=12, fontweight='bold')
+    ax1.set_ylabel('Population Size', fontsize=12, fontweight='bold')
+    ax1.legend(fontsize=10, loc='best', frameon=True, shadow=True)
+    ax1.grid(True, alpha=0.3, linestyle='--')
+
+    # Plot 2: Summary bar chart
+    run_names = [run['name'] for run in runs]
+    initial_pops = [run['results']['focal_population_sizes'][0] for run in runs]
+    final_pops = [run['results']['focal_population_sizes'][-1] for run in runs]
+
+    x = range(len(runs))
+    width = 0.35
+
+    ax2.bar([i - width/2 for i in x], initial_pops, width, label='Initial Population',
+            color='steelblue', alpha=0.8, edgecolor='black')
+    ax2.bar([i + width/2 for i in x], final_pops, width, label='Final Population',
+            color='coral', alpha=0.8, edgecolor='black')
+
+    ax2.set_title('Initial vs Final Population', fontsize=16, fontweight='bold', pad=15)
+    ax2.set_ylabel('Population Size', fontsize=12, fontweight='bold')
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(run_names, rotation=45, ha='right')
+    ax2.legend(fontsize=10, loc='best', frameon=True, shadow=True)
+    ax2.grid(True, alpha=0.3, linestyle='--', axis='y')
+
+    plt.tight_layout()
+
+    # Convert to base64
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+    plt.close()
+
+    return image_base64
+
+
+def generate_comparison_summary(runs):
+    """Generate summary statistics for comparison"""
+    comparison = []
+
+    for run in runs:
+        results = run['results']
+        params = run['parameters']
+
+        initial_pop = results['focal_population_sizes'][0]
+        final_pop = results['focal_population_sizes'][-1]
+        change = final_pop - initial_pop
+        change_pct = (change / initial_pop * 100) if initial_pop > 0 else 0
+
+        comparison.append({
+            'name': run['name'],
+            'timestamp': run['timestamp'],
+            'initial_population': round(initial_pop, 1),
+            'final_population': round(final_pop, 1),
+            'change': round(change, 1),
+            'change_percent': round(change_pct, 1),
+            'total_births': results.get('total_births', 0),
+            'kitten_survival_rate': round(results.get('kitten_survival_rate', 0) * 100, 1),
+            'years': params.get('simulation_years', 'N/A'),
+            'females_amh_pct': params.get('pct_females_amh', 0),
+            'females_spayed_pct': params.get('pct_females_spayed', 0),
+            'males_neutered_pct': params.get('pct_males_neutered', 0),
+            'litters_per_year': params.get('litters_per_year', 'N/A'),
+            'arrivals_per_year': params.get('arrivals_per_year', 0),
+            'departures_per_year': params.get('departures_per_year', 0)
+        })
+
+    return comparison
+
+
+@app.route('/export_comparison', methods=['POST'])
+def export_comparison():
+    """Export comparison data to CSV"""
+    try:
+        data = request.json
+        run_ids = data.get('run_ids', [])
+
+        if not run_ids:
+            return jsonify({'success': False, 'error': 'No runs selected'}), 400
+
+        # Get selected runs
+        selected_runs = [run for run in simulation_history if run['id'] in run_ids]
+
+        if not selected_runs:
+            return jsonify({'success': False, 'error': 'Invalid run IDs'}), 400
+
+        # Generate comparison data
+        comparison_data = generate_comparison_summary(selected_runs)
+
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Write header
+        writer.writerow([
+            'Run Name', 'Timestamp', 'Initial Population', 'Final Population',
+            'Change', 'Change %', 'Total Births', 'Kitten Survival %',
+            'Years', 'Females AMH %', 'Females Spayed %', 'Males Neutered %',
+            'Litters/Year', 'Arrivals/Year', 'Departures/Year'
+        ])
+
+        # Write data
+        for row in comparison_data:
+            writer.writerow([
+                row['name'], row['timestamp'], row['initial_population'],
+                row['final_population'], row['change'], row['change_percent'],
+                row['total_births'], row['kitten_survival_rate'], row['years'],
+                row['females_amh_pct'], row['females_spayed_pct'],
+                row['males_neutered_pct'], row['litters_per_year'],
+                row['arrivals_per_year'], row['departures_per_year']
+            ])
+
+        # Prepare file for download
+        output.seek(0)
+        bytes_output = io.BytesIO()
+        bytes_output.write(output.getvalue().encode('utf-8'))
+        bytes_output.seek(0)
+
+        return send_file(
+            bytes_output,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'simulation_comparison_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        )
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
 
 
 if __name__ == '__main__':
