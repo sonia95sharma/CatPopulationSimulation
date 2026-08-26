@@ -4,6 +4,12 @@ Enhanced Population Simulation UI with Detailed Biological Parameters
 Includes estrous cycles, male monopolization, AMH contraception, and more
 """
 
+import os
+import tempfile
+# matplotlib needs a writable config/cache dir. On serverless hosts (e.g. Vercel)
+# only the temp dir is writable, so point it there before importing matplotlib.
+os.environ.setdefault('MPLCONFIGDIR', os.path.join(tempfile.gettempdir(), 'matplotlib'))
+
 from flask import Flask, render_template, request, jsonify, send_file
 import json
 import matplotlib
