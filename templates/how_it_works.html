@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How the Simulation Works — Cat Population Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e3a5f;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: #1e3a5f;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 30px 34px; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h2 {
+            color: #1e3a5f;
+            font-size: 1.35em;
+            margin: 28px 0 10px;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 6px;
+        }
+        h3 { color: #555; font-size: 1.05em; margin: 18px 0 6px; }
+        p { color: #333; line-height: 1.7; margin-bottom: 12px; }
+        ul, ol { color: #333; line-height: 1.7; margin: 0 0 12px 22px; }
+        li { margin-bottom: 6px; }
+        .lead {
+            font-size: 1.05em;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #1e3a5f;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+        .step .num {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            border-radius: 50%;
+            width: 24px; height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+        .step strong { color: #333; }
+        code {
+            background: #eef1f6;
+            color: #1e3a5f;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.92em;
+        }
+        .callout {
+            background: #eef1f6;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        a.inline { color: #1e3a5f; font-weight: 600; }
+        .disclaimer {
+            margin-top: 26px;
+            padding: 16px 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            color: #856404;
+            font-size: 0.88em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>How the Simulation Works</h1>
+            <p>A plain-language guide to the model behind the Cat Population Simulator</p>
+        </div>
+        <div class="content">
+            <a class="back-link" href="/">&larr; Back to the simulator</a>
+
+            <p class="lead">
+                The simulator tracks a colony of cats forward through time and reports how its size changes
+                under different management strategies. It is a <strong>compartmental</strong> model: instead of
+                following individual cats, it tracks the <em>numbers</em> of cats in a handful of groups and
+                moves cats between those groups each step according to births, deaths, maturation, and management.
+            </p>
+
+            <h2>The groups it tracks</h2>
+            <p>Adult cats are split into five groups, because each behaves differently:</p>
+            <ul>
+                <li><strong>Intact females</strong> — can cycle, mate, and conceive.</li>
+                <li><strong>Spayed females</strong> — surgically sterilized; they do <em>not</em> cycle, so they draw no male attention and cannot conceive.</li>
+                <li><strong>AMH-treated females</strong> — cannot conceive, but they <em>still cycle</em> and attract males (this is the key difference from spaying).</li>
+                <li><strong>Intact males</strong> — can father litters.</li>
+                <li><strong>Neutered males</strong> — cannot.</li>
+            </ul>
+            <p>
+                Kittens are held separately in a <strong>juvenile stage</strong> until they are old enough to breed
+                (see maturation below), reflecting that females reach sexual maturity around {{ v.female_maturity }} months
+                and males around {{ v.male_maturity }} months.
+            </p>
+
+            <h2>Time steps</h2>
+            <p>
+                The clock advances in <strong>6-month steps</strong>. Cats are seasonally polyestrous, so breeding
+                happens in the January–September season; the model weights each half-year by how much of it falls in
+                that season, while keeping the <em>total</em> litters per year equal to the value you set.
+            </p>
+
+            <h2>What happens in each step</h2>
+            <div class="step"><span class="num">1</span><strong>Management is applied.</strong> If you chose <em>yearly</em> treatment, a share of the currently-intact cats is spayed, given AMH, or neutered this year. (If you chose <em>one-time</em>, this only happened at the very start.)</div>
+            <div class="step"><span class="num">2</span><strong>Mating is resolved.</strong> Intact males have a limited number of matings per day. Females compete for that attention based on how often they actually mate (from trial data): intact females mate on relatively few days because they are pregnant or recovering most of the year, while AMH females never conceive and so stay available on more days. Spayed females do not cycle at all. If demand for males exceeds their capacity, only a fraction of intact females conceive.</div>
+            <div class="step"><span class="num">3</span><strong>Litters are born.</strong> Each breeding female produces her share of the year's litters (mean {{ v.mean_litter }} kittens each). Fecundity is capped at ~{{ v.max_litters }} litters/year, the most physically possible given gestation ({{ v.gestation }} d) + postpartum recovery ({{ v.postpartum }} d) + time to re-conceive.</div>
+            <div class="step"><span class="num">4</span><strong>Kittens face high mortality.</strong> Kitten death is <em>density-dependent</em>: from {{ v.base_kmort }}% at low density up to {{ v.high_kmort }}% as the colony nears its carrying capacity. This is the model's main brake on growth.</div>
+            <div class="step"><span class="num">5</span><strong>Adults die at their yearly rate.</strong> A constant annual mortality (which you set) is applied to every adult and juvenile group.</div>
+            <div class="step"><span class="num">6</span><strong>Juveniles grow up.</strong> Surviving kittens spend time in the juvenile stage and then graduate into the intact-adult groups (about 12 months to first breeding).</div>
+            <div class="step"><span class="num">7</span><strong>Cats arrive and leave.</strong> Arrivals (immigration/abandonment) add intact cats; departures/removals (emigration, adoption, shelter pickup) take cats out. Both assume a 50:50 sex ratio.</div>
+            <div class="step"><span class="num">8</span><strong>Carrying capacity is enforced.</strong> If you enabled a maximum, any excess above it is trimmed. If you disabled it, the colony can grow without limit.</div>
+
+            <h2>The male-attention idea (why AMH might differ from spaying)</h2>
+            <div class="callout">
+                Each male can service only so many females per day. Spaying <em>removes</em> a female from the mating
+                pool entirely. AMH prevents pregnancy but leaves the female cycling and available — and because she
+                never becomes pregnant, she stays available to mate far more of the time than an intact female (who is
+                pregnant or recovering most of the year). In trials, treated females mated on roughly 23–40% of days
+                versus about 10–15% for intact controls. If males are a <em>limiting</em> resource, those extra AMH
+                matings could tie up male attention and reduce fertile females' breeding — an added effect spaying
+                cannot produce.
+                <br><br>
+                <strong>Important caveat:</strong> this is a <em>hypothesis</em>, not an established population-level
+                effect, and it only matters when intact males are genuinely scarce (uncommon, since a few males can
+                service many females). In most settings the simulator shows AMH and spaying performing almost
+                identically. The effect is also larger when cats are treated as kittens (more mating) than as adults.
+            </div>
+
+            <h2>Interventions you can combine</h2>
+            <ul>
+                <li><strong>Spaying, AMH, and neutering</strong> can all be applied together in one run.</li>
+                <li><strong>One-time</strong> treats the starting population once — coverage then fades as treated cats die and untreated newcomers arrive. <strong>Yearly</strong> re-treats the intact population every year.</li>
+                <li>Levels can be set as a <strong>percentage</strong> of the population or as an <strong>absolute number</strong> of animals (useful when your real-world capacity is, say, 40 cats per year).</li>
+            </ul>
+
+            <h2>Single run vs. many runs</h2>
+            <p>
+                With <strong>1 simulation</strong>, the model runs a single, fully predictable trajectory. Set the
+                <strong>number of simulations</strong> higher and it becomes <strong>stochastic</strong>: births and
+                deaths are drawn at random each step, with the randomness scaling by population size (small colonies
+                swing more and can die out; large ones are steadier). The app then shows the <strong>average</strong>
+                trajectory, a <strong>90% confidence band</strong>, and the <strong>probability of near-eradication</strong>
+                (runs ending below one cat).
+            </p>
+
+            <h2>What the model deliberately keeps simple</h2>
+            <ul>
+                <li>6-month steps and a single juvenile stage, rather than tracking exact ages.</li>
+                <li>Adult mortality is one constant rate (not different by sex or reproductive status).</li>
+                <li>Mating is a simplified "attention budget," not mechanistic mate choice.</li>
+                <li>AMH is treated as fully effective and permanent (no waning between doses).</li>
+                <li>No disease, predation, or other outside forces.</li>
+            </ul>
+
+            <p style="margin-top:18px;">
+                For the exact fixed values and their literature sources, see the
+                <a class="inline" href="/assumptions">Assumed Values &amp; Sources</a> page.
+            </p>
+
+            <div class="disclaimer">
+                This simulator is a simplified model intended for educational and exploratory purposes only.
+                It does not capture all real-world variables and should not be used for policy decisions,
+                medical or veterinary guidance, or other high-stakes planning.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

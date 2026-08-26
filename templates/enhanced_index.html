@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Population Simulation - Detailed Biological Parameters</title>
+    <title>Cat Population Simulator</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1e3a5f;
             padding: 20px;
             min-height: 100vh;
         }
@@ -28,7 +28,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1e3a5f;
             color: white;
             padding: 30px;
             text-align: center;
@@ -73,10 +73,10 @@
         }
 
         .control-section h3 {
-            color: #667eea;
+            color: #1e3a5f;
             margin-bottom: 12px;
             font-size: 1.1em;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 2px solid #1e3a5f;
             padding-bottom: 6px;
         }
 
@@ -114,26 +114,31 @@
             -webkit-appearance: none;
         }
 
+        input[type="range"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #667eea;
+            background: #1e3a5f;
             cursor: pointer;
             transition: background 0.3s;
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            background: #764ba2;
+            background: #16293f;
         }
 
         input[type="range"]::-moz-range-thumb {
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #667eea;
+            background: #1e3a5f;
             cursor: pointer;
             border: none;
         }
@@ -142,7 +147,7 @@
             min-width: 70px;
             text-align: center;
             font-weight: bold;
-            color: #667eea;
+            color: #1e3a5f;
             font-size: 1em;
             background: #f0f0f0;
             padding: 4px 8px;
@@ -160,7 +165,7 @@
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1e3a5f;
         }
 
         .btn {
@@ -177,15 +182,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1e3a5f;
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(30, 58, 95, 0.4);
             margin-top: 10px;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(30, 58, 95, 0.6);
         }
 
         .btn-primary:disabled {
@@ -197,25 +202,25 @@
 
         .btn-secondary {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #1e3a5f;
+            border: 2px solid #1e3a5f;
             margin-top: 8px;
         }
 
         .btn-secondary:hover {
-            background: #667eea;
+            background: #1e3a5f;
             color: white;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
-            color: #667eea;
+            color: #1e3a5f;
         }
 
         .spinner {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border-top: 4px solid #1e3a5f;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -267,7 +272,7 @@
         }
 
         .welcome-message h2 {
-            color: #667eea;
+            color: #1e3a5f;
             margin-bottom: 20px;
             font-size: 2em;
         }
@@ -283,6 +288,31 @@
             margin-bottom: 20px;
         }
 
+        .overview-box {
+            text-align: left;
+            max-width: 750px;
+            margin: 0 auto 20px auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px 30px;
+        }
+
+        .overview-box h3 {
+            color: #1e3a5f;
+            margin: 18px 0 8px 0;
+            font-size: 1.15em;
+        }
+
+        .overview-box h3:first-child {
+            margin-top: 0;
+        }
+
+        .overview-box p {
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -291,7 +321,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1e3a5f;
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -311,7 +341,7 @@
 
         .section-badge {
             display: inline-block;
-            background: #667eea;
+            background: #1e3a5f;
             color: white;
             padding: 2px 8px;
             border-radius: 3px;
@@ -325,40 +355,88 @@
     <div class="container">
         <div class="header">
             <h1>Cat Population Simulation</h1>
-            <p>Detailed Biological Modeling: Estrous Cycles • Male Monopolization • AMH Contraception</p>
+            <p>An exploratory tool to model free-roaming domestic cat population dynamics</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                <a href="/how-it-works" target="_blank" style="color: white; text-decoration: underline;">⚙️ How the simulation works</a>
+                &nbsp;•&nbsp;
+                <a href="/assumptions" target="_blank" style="color: white; text-decoration: underline;">📋 Assumed values &amp; sources</a>
+            </p>
         </div>
 
         <div class="main-content">
             <!-- Controls Panel -->
             <div class="controls-panel">
 
-
-
-                <!-- Male Breeding Capacity -->
+                <!-- 1. Population Structure -->
                 <div class="control-section">
-                    <h3>Male Breeding Capacity</h3>
+                    <h3>Population Structure</h3>
 
                     <div class="control-group">
-                        <label for="male_breeding_capacity_per_day">Females per Male per Day</label>
-                        <div class="description">How many females one male can mate with per day</div>
+                        <label for="focal_population">Initial Population</label>
+                        <div class="description">Starting number of adult cats in the focal population (does not include current kittens)</div>
                         <div class="slider-container">
-                            <input type="range" id="male_breeding_capacity_per_day" min="1" max="10" value="3" step="0.5">
-                            <span class="value-display" id="male_breeding_capacity_per_day_value">3.0</span>
+                            <input type="range" id="focal_population" min="10" max="500" value="50" step="5">
+                            <span class="value-display" id="focal_population_value">50</span>
                         </div>
                     </div>
 
                     <div class="control-group">
-                        <label for="monopolization_amh_days">AMH Female Cycling Days per Cycle</label>
-                        <div class="description">Days AMH females display estrus-like behavior (monopolize males)</div>
+                        <label for="male_percentage">Male Percentage (%)</label>
+                        <div class="description">Percentage of population that is male (default 50% = equal sex ratio)</div>
                         <div class="slider-container">
-                            <input type="range" id="monopolization_amh_days" min="7" max="30" value="15" step="1">
-                            <span class="value-display" id="monopolization_amh_days_value">15 days</span>
+                            <input type="range" id="male_percentage" min="10" max="90" value="50" step="5">
+                            <span class="value-display" id="male_percentage_value">50%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="use_carrying_capacity" checked style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;">
+                            Model a maximum carrying capacity
+                        </label>
+                        <div class="description">If unchecked, the population grows without an upper limit (infinite growth).</div>
+                        <label for="focal_carrying_capacity">Carrying Capacity</label>
+                        <div class="description">Maximum sustainable population</div>
+                        <div class="slider-container">
+                            <input type="range" id="focal_carrying_capacity" min="50" max="1000" value="200" step="10">
+                            <span class="value-display" id="focal_carrying_capacity_value">200</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- 2. Population Dynamics -->
+                <div class="control-section">
+                    <h3>Population Dynamics</h3>
 
-                <!-- Litter Parameters -->
+                    <div class="control-group">
+                        <label for="adult_mortality_annual">Annual Adult Mortality (%)</label>
+                        <div class="description">Percentage of adults that die each year (typical: 10-20%)</div>
+                        <div class="slider-container">
+                            <input type="range" id="adult_mortality_annual" min="0" max="50" value="10" step="1">
+                            <span class="value-display" id="adult_mortality_annual_value">10%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="arrivals_per_year">Arrivals (intact cats per year)</label>
+                        <div class="description">Number of intact cats added to population by non-reproductive means (immigration, abandonment). Assumes 50:50 sex ratio.</div>
+                        <div class="slider-container">
+                            <input type="range" id="arrivals_per_year" min="0" max="50" value="10" step="1">
+                            <span class="value-display" id="arrivals_per_year_value">10</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="departures_per_year">Departures and Removals (cats per year)</label>
+                        <div class="description">Number of cats removed from population by emigration, displacement, shelter removal, or adoption. Assumes 50:50 sex ratio.</div>
+                        <div class="slider-container">
+                            <input type="range" id="departures_per_year" min="0" max="50" value="10" step="1">
+                            <span class="value-display" id="departures_per_year_value">10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Breeding Parameters -->
                 <div class="control-section">
                     <h3>Breeding Parameters</h3>
 
@@ -370,13 +448,22 @@
                             <span class="value-display" id="litters_per_year_value">2.0</span>
                         </div>
                     </div>
+
+                    <div class="control-group">
+                        <label for="male_breeding_capacity_per_day">Male breeding capacity</label>
+                        <div class="description">How many females one male can mate with per day</div>
+                        <div class="slider-container">
+                            <input type="range" id="male_breeding_capacity_per_day" min="1" max="10" value="3" step="0.5">
+                            <span class="value-display" id="male_breeding_capacity_per_day_value">3.0</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Fertility Control -->
+                <!-- 4. Fertility Control Management -->
                 <div class="control-section">
                     <h3>Fertility Control Management</h3>
 
-                    <div style="background: #e8f4f8; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                    <div style="background: #eef1f6; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
                         <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 10px;">
                             <div style="flex: 1;">
                                 <label style="font-weight: bold; display: block; margin-bottom: 8px;">Unit:</label>
@@ -418,7 +505,7 @@
 
                     <div class="control-group">
                         <label for="pct_females_spayed">Females Spayed</label>
-                        <div class="description">Surgical sterilization (permanent)</div>
+                        <div class="description">Surgical sterilization – prevents pregnancy, does not allow cycling</div>
                         <div class="slider-container">
                             <input type="range" id="pct_females_spayed" min="0" max="100" value="0" step="5">
                             <span class="value-display" id="pct_females_spayed_value">0%</span>
@@ -427,7 +514,7 @@
 
                     <div class="control-group">
                         <label for="pct_males_neutered">Males Neutered</label>
-                        <div class="description">Surgical sterilization (permanent)</div>
+                        <div class="description">Surgical sterilization – unable to impregnate females</div>
                         <div class="slider-container">
                             <input type="range" id="pct_males_neutered" min="0" max="100" value="0" step="5">
                             <span class="value-display" id="pct_males_neutered_value">0%</span>
@@ -435,7 +522,27 @@
                     </div>
                 </div>
 
-                <!-- Simulation Settings -->
+                <!-- AMH Contraception Behavior -->
+                <div class="control-section">
+                    <h3>AMH Contraception Behavior</h3>
+
+                    <div class="control-group">
+                        <label>Age at AMH treatment</label>
+                        <div class="description">Sets how often treated females mate, from trial data. AMH females never conceive, so they stay available and mate on more days than intact females — which can draw male attention away from fertile females when males are scarce.</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                                <input type="radio" name="amh_treatment_age" value="adult" checked style="margin-right: 8px;">
+                                Adults &nbsp;<span style="color:#888;">(intact mate 10% of days, AMH 23%)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                                <input type="radio" name="amh_treatment_age" value="kitten" style="margin-right: 8px;">
+                                Kittens &nbsp;<span style="color:#888;">(intact mate 15% of days, AMH 40%)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Simulation Settings -->
                 <div class="control-section">
                     <h3>Simulation Settings</h3>
 
@@ -447,73 +554,13 @@
                             <span class="value-display" id="simulation_years_value">10 years</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Population Structure -->
-                <div class="control-section">
-                    <h3>Population Structure</h3>
 
                     <div class="control-group">
-                        <label for="focal_population">Initial Population</label>
-                        <div class="description">Starting focal population size</div>
+                        <label for="n_simulations">Number of Simulations</label>
+                        <div class="description">1 = single deterministic run. More runs add randomness (births, deaths) and show a 90% confidence band + chance of near-eradication.</div>
                         <div class="slider-container">
-                            <input type="range" id="focal_population" min="10" max="500" value="50" step="5">
-                            <span class="value-display" id="focal_population_value">50</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="male_percentage">Male Percentage (%)</label>
-                        <div class="description">Percentage of population that is male (default 50% = equal sex ratio)</div>
-                        <div class="slider-container">
-                            <input type="range" id="male_percentage" min="10" max="90" value="50" step="5">
-                            <span class="value-display" id="male_percentage_value">50%</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="focal_carrying_capacity">Carrying Capacity</label>
-                        <div class="description">Maximum sustainable population</div>
-                        <div class="slider-container">
-                            <input type="range" id="focal_carrying_capacity" min="50" max="1000" value="200" step="10">
-                            <span class="value-display" id="focal_carrying_capacity_value">200</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Population Dynamics -->
-                <div class="control-section">
-                    <h3>Population Dynamics</h3>
-
-                    <div class="control-group">
-                        <label for="arrivals_per_year">Arrivals (intact cats per year)</label>
-                        <div class="description">Number of intact cats added to population by non-reproductive means (immigration, abandonment). Assumes 50:50 sex ratio.</div>
-                        <div class="slider-container">
-                            <input type="range" id="arrivals_per_year" min="0" max="50" value="10" step="1">
-                            <span class="value-display" id="arrivals_per_year_value">10</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="departures_per_year">Departures and Removals (cats per year)</label>
-                        <div class="description">Number of cats removed from population by emigration, displacement, shelter removal, or adoption</div>
-                        <div class="slider-container">
-                            <input type="range" id="departures_per_year" min="0" max="50" value="10" step="1">
-                            <span class="value-display" id="departures_per_year_value">10</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mortality Section -->
-                <div class="control-section">
-                    <h3>Mortality</h3>
-
-                    <div class="control-group">
-                        <label for="adult_mortality_annual">Annual Adult Mortality (%)</label>
-                        <div class="description">Percentage of adults that die each year (typical: 10-20%)</div>
-                        <div class="slider-container">
-                            <input type="range" id="adult_mortality_annual" min="0" max="50" value="10" step="1">
-                            <span class="value-display" id="adult_mortality_annual_value">10%</span>
+                            <input type="range" id="n_simulations" min="1" max="200" value="1" step="1">
+                            <span class="value-display" id="n_simulations_value">1</span>
                         </div>
                     </div>
                 </div>
@@ -526,33 +573,21 @@
             <!-- Results Panel -->
             <div class="results-panel">
                 <div class="welcome-message" id="welcomeMessage">
-                    <div class="welcome-icon">🔬</div>
-                    <h2>Welcome to Enhanced Biological Modeling</h2>
-                    <p>This simulation includes detailed reproductive biology based on peer-reviewed research:</p>
-                    <ul style="list-style: none; padding: 20px; text-align: left; max-width: 700px; margin: 0 auto; background: #f8f9fa; border-radius: 10px;">
-                        <li style="margin: 10px 0;">✅ <strong>16-day estrous cycles</strong> with 7-day estrus periods (research-based)</li>
-                        <li style="margin: 10px 0;">✅ <strong>Sexual maturity:</strong> Females avg 8.5 months, Males avg 10 months (research-based)</li>
-                        <li style="margin: 10px 0;">✅ <strong>65-day gestation</strong> + 56-day (8 week) postpartum delay (research-based)</li>
-                        <li style="margin: 10px 0;">✅ <strong>Litter size:</strong> Mean 4 kittens (SD 1.9, range 1-9) (research-based)</li>
-                        <li style="margin: 10px 0;">✅ <strong>Year-round breeding:</strong> No seasonal restrictions (adjustable if needed)</li>
-                        <li style="margin: 10px 0;">✅ <strong>Male breeding capacity:</strong> Males can mate with limited number of females per day</li>
-                        <li style="margin: 10px 0;">✅ <strong>AMH contraception:</strong> AMH females cycle and monopolize males but don't get pregnant</li>
-                        <li style="margin: 10px 0;">✅ <strong>Breeding competition:</strong> If male capacity is exceeded, only fraction of intact females get pregnant</li>
-                        <li style="margin: 10px 0;">✅ <strong>Arrivals & Departures:</strong> Model immigration, abandonment, adoption, and shelter removal</li>
-                        <li style="margin: 10px 0;">✅ <strong>Flexible fertility control:</strong> One-time or yearly interventions, percentage or absolute numbers</li>
-                        <li style="margin: 10px 0;">✅ <strong>Adjustable mortality:</strong> Set adult mortality rate (typical 10-20% annually)</li>
-                    </ul>
-                    <p style="margin-top: 20px;"><strong>Example:</strong> With 3 females/male/day capacity, 20 males can breed 60 intact females if cycling asynchronously. Adding 40 AMH females increases male demand, reducing intact female breeding success unless more males are present.</p>
-                    <p style="margin-top: 10px;">Adjust the management parameters on the left and click <strong>"Run Enhanced Simulation"</strong> to see results!</p>
+                    <div class="welcome-icon">🐈</div>
+                    <h2>Cat Population Simulator</h2>
+                    <p style="max-width: 600px; margin: 0 auto 24px;">Explore how free-roaming cat populations change over time under different reproductive management strategies — spaying, AMH contraception, or both.</p>
+                    <p style="color: #888; font-size: 1em;">Adjust the parameters on the left and click <strong>Run</strong>. Save runs to compare strategies.</p>
 
-                    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto;">
-                        <h4 style="color: #856404; margin-top: 0;">Disclaimer</h4>
-                        <p style="color: #856404; font-size: 0.9em; line-height: 1.6; margin-bottom: 0;">
-                            This simulator is a simplified model intended for educational and exploratory purposes only.
-                            It does not capture all real-world variables and should not be used for policy decisions,
-                            medical or veterinary guidance, or other high-stakes planning.
-                        </p>
-                    </div>
+                    <p style="margin-top: 28px; font-size: 0.95em;">
+                        <a href="/how-it-works" target="_blank" style="color: #1e3a5f; font-weight: 600; text-decoration: none;">How it works</a>
+                        &nbsp;·&nbsp;
+                        <a href="/assumptions" target="_blank" style="color: #1e3a5f; font-weight: 600; text-decoration: none;">Assumed values &amp; sources</a>
+                    </p>
+
+                    <p style="margin-top: 24px; color: #aaa; font-size: 0.8em; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        For educational and exploratory purposes only — not for policy, medical, or veterinary decisions.
+                    </p>
+                    <p style="margin-top: 8px; color: #bbb; font-size: 0.8em;">Created by Sonia Mahir</p>
                 </div>
 
                 <div class="loading" id="loadingIndicator" style="display: none;">
@@ -563,9 +598,11 @@
                 <div class="error-message" id="errorMessage"></div>
 
                 <div class="results-container" id="resultsContainer">
-                    <h2 style="color: #667eea; margin-bottom: 20px;">Simulation Results</h2>
+                    <h2 style="color: #1e3a5f; margin-bottom: 20px;">Simulation Results</h2>
 
                     <div class="stats-grid" id="statsGrid"></div>
+
+                    <div id="litterCapNote" style="display: none; margin: 0 0 20px 0; padding: 12px 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px; color: #856404; font-size: 0.9em;"></div>
 
                     <div class="plot-container">
                         <img id="plotImage" src="" alt="Simulation Results">
@@ -578,7 +615,7 @@
                 </div>
 
                 <div class="comparison-container" id="comparisonContainer" style="display: none;">
-                    <h2 style="color: #667eea; margin-bottom: 20px;">Compare Simulation Runs</h2>
+                    <h2 style="color: #1e3a5f; margin-bottom: 20px;">Compare Simulation Runs</h2>
 
                     <div style="margin-bottom: 20px;">
                         <h3 style="color: #333; font-size: 1.1em; margin-bottom: 10px;">Saved Runs</h3>
@@ -601,7 +638,7 @@
                         </div>
 
                         <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                            <h4 style="color: #667eea; margin-bottom: 15px;">Summary Statistics</h4>
+                            <h4 style="color: #1e3a5f; margin-bottom: 15px;">Summary Statistics</h4>
                             <div id="comparisonTable" style="overflow-x: auto;"></div>
                         </div>
                     </div>
@@ -617,12 +654,12 @@
         // Default values (some are now hardcoded biologically accurate values)
         const defaults = {
             male_breeding_capacity_per_day: 3.0,
-            monopolization_amh_days: 15,
             litters_per_year: 2.0,
             pct_females_amh: 0,
             pct_females_spayed: 0,
             pct_males_neutered: 0,
             simulation_years: 10,
+            n_simulations: 1,
             // Population structure
             focal_population: 50,
             male_percentage: 50,
@@ -639,6 +676,9 @@
 
         // Track current fertility control unit mode
         let currentFCUnit = 'percentage';
+
+        // Fertility control slider ids (share the population-based absolute cap)
+        const FC_SLIDERS = ['pct_females_amh', 'pct_females_spayed', 'pct_males_neutered'];
 
         // Update slider value displays
         function updateSliderDisplay(sliderId, value) {
@@ -677,9 +717,7 @@
             currentFCUnit = unit;
             const focalPop = parseInt(document.getElementById('focal_population').value);
 
-            const fcSliders = ['pct_females_amh', 'pct_females_spayed', 'pct_males_neutered'];
-
-            fcSliders.forEach(sliderId => {
+            FC_SLIDERS.forEach(sliderId => {
                 const slider = document.getElementById(sliderId);
                 const currentValue = parseFloat(slider.value);
 
@@ -702,6 +740,46 @@
 
                 updateSliderDisplay(sliderId, slider.value);
             });
+
+            // In absolute mode the three sliders together cannot exceed the population
+            enforceFCSum(null);
+        }
+
+        // In absolute mode, keep the sum of AMH + Spayed + Neutered <= initial population
+        function enforceFCSum(changedId) {
+            if (currentFCUnit !== 'absolute') return;
+            const focalPop = parseInt(document.getElementById('focal_population').value);
+            const total = FC_SLIDERS.reduce((sum, id) => sum + parseFloat(document.getElementById(id).value), 0);
+
+            if (total > focalPop && changedId) {
+                const others = FC_SLIDERS
+                    .filter(id => id !== changedId)
+                    .reduce((sum, id) => sum + parseFloat(document.getElementById(id).value), 0);
+                const slider = document.getElementById(changedId);
+                slider.value = Math.max(0, focalPop - others);
+                updateSliderDisplay(changedId, slider.value);
+            }
+        }
+
+        // When the population changes while in absolute mode, rescale the fertility-control caps
+        function refreshFCAbsoluteMax() {
+            if (currentFCUnit !== 'absolute') return;
+            const focalPop = parseInt(document.getElementById('focal_population').value);
+            FC_SLIDERS.forEach(id => {
+                const slider = document.getElementById(id);
+                slider.max = focalPop;
+                if (parseFloat(slider.value) > focalPop) {
+                    slider.value = focalPop;
+                }
+                updateSliderDisplay(id, slider.value);
+            });
+            enforceFCSum(null);
+        }
+
+        // Enable/disable the carrying capacity slider based on the checkbox
+        function updateCarryingCapacityState() {
+            const enabled = document.getElementById('use_carrying_capacity').checked;
+            document.getElementById('focal_carrying_capacity').disabled = !enabled;
         }
 
         // Initialize sliders
@@ -713,6 +791,20 @@
             updateSliderDisplay(slider.id, slider.value);
         });
 
+        // Fertility-control sliders: enforce the combined population cap in absolute mode
+        FC_SLIDERS.forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                enforceFCSum(id);
+            });
+        });
+
+        // Population size changes rescale the absolute fertility-control caps
+        document.getElementById('focal_population').addEventListener('input', refreshFCAbsoluteMax);
+
+        // Carrying capacity checkbox
+        document.getElementById('use_carrying_capacity').addEventListener('change', updateCarryingCapacityState);
+        updateCarryingCapacityState();
+
         // Add event listeners for fertility control unit radio buttons
         document.querySelectorAll('input[name="fc_unit"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -722,6 +814,16 @@
 
         // Reset to defaults
         document.getElementById('resetDefaults').addEventListener('click', function() {
+            // Reset unit back to percentage first so caps/steps are correct
+            document.querySelector('input[name="fc_unit"][value="percentage"]').checked = true;
+            document.querySelector('input[name="fc_timing"][value="one-time"]').checked = true;
+            currentFCUnit = 'percentage';
+            FC_SLIDERS.forEach(id => {
+                const slider = document.getElementById(id);
+                slider.max = 100;
+                slider.step = 5;
+            });
+
             Object.keys(defaults).forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
@@ -731,6 +833,10 @@
                     }
                 }
             });
+
+            // Reset carrying capacity checkbox
+            document.getElementById('use_carrying_capacity').checked = true;
+            updateCarryingCapacityState();
         });
 
         // Run simulation
@@ -762,6 +868,10 @@
             const fcTiming = document.querySelector('input[name="fc_timing"]:checked').value;
             params['fc_unit'] = fcUnit;
             params['fc_timing'] = fcTiming;
+            params['amh_treatment_age'] = document.querySelector('input[name="amh_treatment_age"]:checked').value;
+
+            // Carrying capacity toggle (unchecked = infinite / no maximum population)
+            params['use_carrying_capacity'] = document.getElementById('use_carrying_capacity').checked;
 
             // Note: If unit is absolute, the slider values are already in absolute numbers
             // If unit is percentage, the slider values are in percentage
@@ -804,15 +914,37 @@
             const statsGrid = document.getElementById('statsGrid');
             const finalPop = Math.round(results.population_sizes[results.population_sizes.length - 1]);
             const simYears = data.parameters_used.simulation_years || 10;
-            const simDays = simYears * 365;
+            const effLitters = results.effective_litters_per_year;
+            const maxLitters = results.max_litters_per_year;
+            const reqLitters = data.parameters_used.litters_per_year;
+            const nSims = results.n_simulations || 1;
+            const stochastic = nSims > 1;
 
-            statsGrid.innerHTML = `
+            // Final population card: mean for ensembles, exact value for single run
+            const finalLabel = stochastic ? 'Final Population (mean)' : 'Final Population';
+            const finalValue = stochastic ? Math.round(results.final_population_mean) : finalPop;
+
+            let cards = `
                 <div class="stat-card">
-                    <div class="stat-label">Final Population</div>
-                    <div class="stat-value">${finalPop}</div>
+                    <div class="stat-label">${finalLabel}</div>
+                    <div class="stat-value">${finalValue}</div>
+                </div>`;
+
+            if (stochastic) {
+                cards += `
+                <div class="stat-card">
+                    <div class="stat-label">90% Interval (final)</div>
+                    <div class="stat-value" style="font-size: 1.3em;">${Math.round(results.final_population_lower)}–${Math.round(results.final_population_upper)}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Total Births</div>
+                    <div class="stat-label">P(near-eradication)</div>
+                    <div class="stat-value">${(results.prob_near_eradication * 100).toFixed(0)}%</div>
+                </div>`;
+            }
+
+            cards += `
+                <div class="stat-card">
+                    <div class="stat-label">Total Births${stochastic ? ' (mean)' : ''}</div>
                     <div class="stat-value">${results.total_births}</div>
                 </div>
                 <div class="stat-card">
@@ -820,10 +952,25 @@
                     <div class="stat-value">${(results.kitten_survival_rate * 100).toFixed(1)}%</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Simulation Days</div>
-                    <div class="stat-value">${simDays}</div>
+                    <div class="stat-label">Litters/yr (used)</div>
+                    <div class="stat-value">${effLitters !== undefined ? effLitters.toFixed(2) : '—'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">${stochastic ? 'Runs' : 'Duration'}</div>
+                    <div class="stat-value">${stochastic ? nSims : simYears + ' yr'}</div>
                 </div>
             `;
+            statsGrid.innerHTML = cards;
+
+            // Note when the physiological cap limited fecundity
+            const capNote = document.getElementById('litterCapNote');
+            if (effLitters !== undefined && reqLitters !== undefined && effLitters < reqLitters - 0.01) {
+                capNote.innerHTML = `<strong>Note:</strong> the requested ${Number(reqLitters).toFixed(1)} litters/year exceeds the physiological maximum of ${maxLitters.toFixed(2)} `
+                    + `(gestation + postpartum recovery + return to estrus), so the simulation used ${effLitters.toFixed(2)} litters/year.`;
+                capNote.style.display = 'block';
+            } else {
+                capNote.style.display = 'none';
+            }
 
             // Display plot
             document.getElementById('plotImage').src = 'data:image/png;base64,' + data.plots;
@@ -969,7 +1116,7 @@
             let tableHTML = `
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                     <thead>
-                        <tr style="background: #667eea; color: white;">
+                        <tr style="background: #1e3a5f; color: white;">
                             <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Run Name</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Initial Pop</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Final Pop</th>

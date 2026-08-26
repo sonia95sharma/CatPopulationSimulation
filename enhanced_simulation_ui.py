@@ -11,7 +11,18 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import base64
-from biological_parameters import DEFAULT_BIOLOGICAL_CONFIG
+from biological_parameters import (
+    ESTROUS_CYCLE_DAYS, ESTRUS_LENGTH_DAYS,
+    FEMALE_MATURITY_MEAN_MONTHS, FEMALE_MATURITY_SD_MONTHS,
+    FEMALE_MATURITY_MIN_MONTHS, FEMALE_MATURITY_MAX_MONTHS,
+    MALE_MATURITY_MEAN_MONTHS, MALE_MATURITY_MIN_MONTHS, MALE_MATURITY_MAX_MONTHS,
+    GESTATION_PERIOD_DAYS, POSTPARTUM_DELAY_DAYS,
+    MEAN_LITTER_SIZE, SD_LITTER_SIZE, MIN_LITTER_SIZE, MAX_LITTER_SIZE,
+    BASE_KITTEN_MORTALITY, HIGH_DENSITY_KITTEN_MORTALITY,
+    BREEDING_SEASON_START_MONTH, BREEDING_SEASON_END_MONTH,
+    MATURE_FRACTION, MATURATION_LAG_TIMESTEPS,
+    AMH_BREEDING_DAY_FRACTIONS,
+)
 from datetime import datetime
 import csv
 
@@ -23,7 +34,153 @@ simulation_history = []
 @app.route('/')
 def index():
     """Render the main UI page with all biological parameter controls"""
-    return render_template('enhanced_index.html', config=DEFAULT_BIOLOGICAL_CONFIG)
+    return render_template('enhanced_index.html')
+
+
+@app.route('/assumptions')
+def assumptions():
+    """Page listing every fixed / assumed value the model uses, with sources.
+
+    Values are pulled from biological_parameters.py (the single source of truth) so
+    this page always reflects what the engine actually uses; the citations are the
+    peer-reviewed sources those values are drawn from or calibrated against.
+    """
+    non_estrus = ESTROUS_CYCLE_DAYS - ESTRUS_LENGTH_DAYS
+    repro_interval = GESTATION_PERIOD_DAYS + POSTPARTUM_DELAY_DAYS + ESTROUS_CYCLE_DAYS / 2.0
+    max_litters = round(365.0 / repro_interval, 2)
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+              'August', 'September', 'October', 'November', 'December']
+
+    sections = [
+        {
+            'title': 'Reproductive cycle',
+            'rows': [
+                {'param': 'Estrous cycle length',
+                 'value': f'{ESTROUS_CYCLE_DAYS} days ({ESTRUS_LENGTH_DAYS}-day estrus + {non_estrus}-day interval)',
+                 'source': 'Shille, Lundström & Stabenfeldt (1979). Estrus 7.4 d (SD 3.7; range 2–19); '
+                           'inter-estrus interval 9.0 d (SD 7.6; range 4–22); rounded for whole-day arithmetic.'},
+                {'param': 'Gestation period',
+                 'value': f'{GESTATION_PERIOD_DAYS} days',
+                 'source': 'Ng, Fascetti & Larsen (2023), review of multiple sources.'},
+                {'param': 'Postpartum delay before re-conception',
+                 'value': f'{POSTPARTUM_DELAY_DAYS} days (8 weeks)',
+                 'source': 'Wildt et al. (1981); Griffin (2001).'},
+                {'param': 'Reproductive interval (derived)',
+                 'value': f'{int(repro_interval)} days → max {max_litters} litters/year',
+                 'source': 'Derived: gestation + postpartum + ~½ estrous cycle. Caps the requested '
+                           'litters/year to what is physiologically possible.'},
+            ],
+        },
+        {
+            'title': 'Age at sexual maturity',
+            'rows': [
+                {'param': 'Females',
+                 'value': f'{FEMALE_MATURITY_MEAN_MONTHS:g} months (SD {FEMALE_MATURITY_SD_MONTHS:g}; '
+                          f'range {int(FEMALE_MATURITY_MIN_MONTHS)}–{int(FEMALE_MATURITY_MAX_MONTHS)})',
+                 'source': 'Jemmett & Evans (1977); Festing & Bleby (1970), via Ng et al. (2023).'},
+                {'param': 'Males',
+                 'value': f'{MALE_MATURITY_MEAN_MONTHS:g} months '
+                          f'(range {int(MALE_MATURITY_MIN_MONTHS)}–{int(MALE_MATURITY_MAX_MONTHS)})',
+                 'source': 'Johnson (2022); Kutzler (2022); Pintus et al. (2021).'},
+                {'param': 'Maturation delay in model',
+                 'value': f'{MATURATION_LAG_TIMESTEPS} timestep (~12 months to first breeding)',
+                 'source': 'Derived from the maturity ages plus the seasonal reality that kittens born '
+                           'in one breeding season generally do not breed until the next.'},
+            ],
+        },
+        {
+            'title': 'Litters',
+            'rows': [
+                {'param': 'Mean litter size',
+                 'value': f'{MEAN_LITTER_SIZE:g} kittens (SD {SD_LITTER_SIZE:g}; '
+                          f'range {MIN_LITTER_SIZE}–{MAX_LITTER_SIZE})',
+                 'source': 'Fournier et al. (2017); Robinson & Cox (1970).'},
+            ],
+        },
+        {
+            'title': 'Mortality',
+            'rows': [
+                {'param': 'Kitten mortality (low density)',
+                 'value': f'{int(BASE_KITTEN_MORTALITY * 100)}%',
+                 'source': 'Density-dependent; calibrated so unmanaged growth matches Miller et al. (2014) '
+                           '(~18–20%/yr) and sterilization response matches Boone et al. (2019).'},
+                {'param': 'Kitten mortality (at carrying capacity)',
+                 'value': f'{int(HIGH_DENSITY_KITTEN_MORTALITY * 100)}%',
+                 'source': 'Interpolated linearly from the low-density rate as the population approaches '
+                           'carrying capacity. Within the high mortality reported for free-roaming kittens.'},
+            ],
+        },
+        {
+            'title': 'Breeding season & population',
+            'rows': [
+                {'param': 'Breeding season',
+                 'value': f'{months[BREEDING_SEASON_START_MONTH-1]}–{months[BREEDING_SEASON_END_MONTH-1]}',
+                 'source': 'Cats are seasonally polyestrous in temperate climates. Realized annual litters '
+                           'are held to the litters/year setting regardless of season length.'},
+                {'param': 'Fraction of adults sexually mature',
+                 'value': f'{int(MATURE_FRACTION * 100)}%',
+                 'source': 'Aggregate model proxy for the mature share of each adult group.'},
+            ],
+        },
+        {
+            'title': 'AMH contraception behavior (male-attention model)',
+            'rows': [
+                {'param': 'Breeding-day fraction — treated as adults',
+                 'value': f"intact {int(AMH_BREEDING_DAY_FRACTIONS['adult']['intact']*100)}% of days / "
+                          f"AMH {int(AMH_BREEDING_DAY_FRACTIONS['adult']['amh']*100)}% of days",
+                 'source': 'Controlled AMH gene-therapy mating trials (adult treatment). Treated females never '
+                           'conceive, so they stay available to mate more than intact females, which are pregnant '
+                           'or recovering most of the year.'},
+                {'param': 'Breeding-day fraction — treated as kittens',
+                 'value': f"intact {int(AMH_BREEDING_DAY_FRACTIONS['kitten']['intact']*100)}% of days / "
+                          f"AMH {int(AMH_BREEDING_DAY_FRACTIONS['kitten']['amh']*100)}% of days",
+                 'source': 'Prepubertal AMH gene-therapy trial (treated bred ~34–47% of days vs ~15% for controls).'},
+                {'param': 'AMH contraceptive efficacy',
+                 'value': '100% (modeled)',
+                 'source': 'Adult and prepubertal trials both reported zero pregnancies in treated females (small '
+                           'samples). Modeled as fully effective and permanent, though durability is demonstrated '
+                           'only to ~3 years.'},
+            ],
+        },
+    ]
+
+    modeling_notes = [
+        'The model can run as a single deterministic trajectory, or as a stochastic ensemble (multiple runs) '
+        'that shows a mean, a 90% confidence band, and the probability of near-eradication.',
+        'Time advances in 6-month timesteps.',
+        'Adult mortality is applied at a constant annual rate (adjustable), independent of density.',
+        'Kitten survival is the main density-dependent regulator of population size.',
+        'Arrivals and departures assume a 50:50 sex ratio.',
+        'The AMH "crowding" advantage over spaying is a hypothesis, not an established population-level effect; '
+        'in the model it appears only when intact males are a scarce, limiting resource.',
+    ]
+
+    return render_template('assumptions.html', sections=sections, modeling_notes=modeling_notes)
+
+
+@app.route('/how-it-works')
+def how_it_works():
+    """Plain-language explanation of the simulation's mechanics.
+
+    Numeric values are pulled from biological_parameters.py so the explanation stays
+    consistent with what the engine actually uses.
+    """
+    repro_interval = GESTATION_PERIOD_DAYS + POSTPARTUM_DELAY_DAYS + ESTROUS_CYCLE_DAYS / 2.0
+    v = {
+        'estrus_days': ESTRUS_LENGTH_DAYS,
+        'cycle_days': ESTROUS_CYCLE_DAYS,
+        'non_estrus_days': ESTROUS_CYCLE_DAYS - ESTRUS_LENGTH_DAYS,
+        'gestation': GESTATION_PERIOD_DAYS,
+        'postpartum': POSTPARTUM_DELAY_DAYS,
+        'max_litters': round(365.0 / repro_interval, 2),
+        'base_kmort': int(round(BASE_KITTEN_MORTALITY * 100)),
+        'high_kmort': int(round(HIGH_DENSITY_KITTEN_MORTALITY * 100)),
+        'mature_pct': int(round(MATURE_FRACTION * 100)),
+        'mean_litter': f'{MEAN_LITTER_SIZE:g}',
+        'female_maturity': f'{FEMALE_MATURITY_MEAN_MONTHS:g}',
+        'male_maturity': f'{MALE_MATURITY_MEAN_MONTHS:g}',
+    }
+    return render_template('how_it_works.html', v=v)
 
 
 @app.route('/run_enhanced_simulation', methods=['POST'])
@@ -32,38 +189,27 @@ def run_enhanced_simulation():
     try:
         data = request.json
 
-        # HARDCODED BIOLOGICAL PARAMETERS (based on research data)
-        # These are no longer adjustable via UI to ensure biological accuracy
+        # Fixed biological parameters. Single source of truth: biological_parameters.py
+        # (these are not adjustable via the UI, to keep the biology consistent).
+        estrous_cycle_length = ESTROUS_CYCLE_DAYS
+        estrus_length = ESTRUS_LENGTH_DAYS
 
-        # Estrous cycle: Full cycle = estrus duration + interval between estrous periods
-        # Estrus duration: 7.4 days (SD = 3.7; range 2–19 days)
-        # Interval between estrous periods: 9.0 days (SD 7.6; range 4–22 days)
-        # Complete cycle: 7.4 + 9.0 = 16.4 days
-        estrous_cycle_length = 16  # Round to 16 days for simplicity
-        estrus_length = 7  # Round to 7 days for simplicity
+        female_maturity_mean_months = FEMALE_MATURITY_MEAN_MONTHS
+        female_maturity_sd_months = FEMALE_MATURITY_SD_MONTHS
+        female_maturity_min_months = FEMALE_MATURITY_MIN_MONTHS
+        female_maturity_max_months = FEMALE_MATURITY_MAX_MONTHS
 
-        # Female sexual maturity: Average age at sexual maturity: 8.5 months (SD = 2.0; range 4-18 months)
-        female_maturity_mean_months = 8.5
-        female_maturity_sd_months = 2.0
-        female_maturity_min_months = 4.0
-        female_maturity_max_months = 18.0
+        male_maturity_mean_months = MALE_MATURITY_MEAN_MONTHS
+        male_maturity_min_months = MALE_MATURITY_MIN_MONTHS
+        male_maturity_max_months = MALE_MATURITY_MAX_MONTHS
 
-        # Male sexual maturity: Average age: 10 months (range 7-12 months)
-        male_maturity_mean_months = 10.0
-        male_maturity_min_months = 7.0
-        male_maturity_max_months = 12.0
+        gestation_period_days = GESTATION_PERIOD_DAYS
+        postpartum_delay_days = POSTPARTUM_DELAY_DAYS
 
-        # Gestation period: Fixed at 65 days
-        gestation_period_days = 65
-
-        # Postpartum delay: Fixed at 8 weeks (56 days)
-        postpartum_delay_days = 56
-
-        # Litter size: Mean 4 kittens (SD = 1.9; range 1-9)
-        mean_litter_size = 4.0
-        sd_litter_size = 1.9
-        min_litter_size = 1
-        max_litter_size = 9
+        mean_litter_size = MEAN_LITTER_SIZE
+        sd_litter_size = SD_LITTER_SIZE
+        min_litter_size = MIN_LITTER_SIZE
+        max_litter_size = MAX_LITTER_SIZE
 
         # Extract fertility control options
         fc_unit = data.get('fc_unit', 'percentage')  # 'percentage' or 'absolute'
@@ -105,13 +251,14 @@ def run_enhanced_simulation():
             'max_litter_size': max_litter_size,
             'min_litter_size': min_litter_size,
 
-            # Breeding season (hardcoded - year-round breeding)
-            'breeding_season_start_month': 1,
-            'breeding_season_end_month': 12,
+            # Breeding season (temperate Jan-Sep; cats are seasonally polyestrous)
+            'breeding_season_start_month': BREEDING_SEASON_START_MONTH,
+            'breeding_season_end_month': BREEDING_SEASON_END_MONTH,
 
             # Male breeding capacity (still adjustable)
             'male_breeding_capacity_per_day': float(data.get('male_breeding_capacity_per_day', 3.0)),
-            'monopolization_amh_days': int(data.get('monopolization_amh_days', 15)),
+            # Age at AMH treatment sets the breeding-day fractions used for crowding
+            'amh_treatment_age': data.get('amh_treatment_age', 'adult'),
 
             # Breeding parameters (still adjustable)
             'litters_per_year': float(data.get('litters_per_year', 2.0)),
@@ -131,6 +278,7 @@ def run_enhanced_simulation():
             # Simulation settings (still adjustable)
             'simulation_years': int(data.get('simulation_years', 10)),
             'simulation_days': int(data.get('simulation_years', 10)) * 365,
+            'n_simulations': int(data.get('n_simulations', 1)),
 
             # Focal population (still adjustable)
             'focal_population': int(data.get('focal_population', 50)),
@@ -143,9 +291,13 @@ def run_enhanced_simulation():
 
             # Mortality parameters
             'adult_mortality_annual': float(data.get('adult_mortality_annual', 10)),
-            # Kitten mortality (hardcoded - density-dependent)
-            'base_kitten_mortality': 0.75,  # 75% at low density
-            'high_density_mortality': 0.87,  # 87% at carrying capacity
+            # Kitten mortality (density-dependent; single source of truth)
+            'base_kitten_mortality': BASE_KITTEN_MORTALITY,
+            'high_density_mortality': HIGH_DENSITY_KITTEN_MORTALITY,
+
+            # Carrying capacity toggle (False = infinite growth, no maximum population)
+            'use_carrying_capacity': bool(data.get('use_carrying_capacity', True)),
+
 
             # Legacy support
             'initial_adult_population': int(data.get('initial_adult_population',
@@ -155,9 +307,13 @@ def run_enhanced_simulation():
                                              data.get('focal_carrying_capacity', 200))),
         }
 
-        # Run working simulation via adapter
-        from working_simulation_adapter import run_adapted_simulation
-        results = run_adapted_simulation(params)
+        # Run working simulation via adapter (ensemble of stochastic runs if requested)
+        from working_simulation_adapter import run_adapted_simulation, run_simulation_ensemble
+        n_sims = params['n_simulations']
+        if n_sims > 1:
+            results = run_simulation_ensemble(params, n_sims)
+        else:
+            results = run_adapted_simulation(params)
 
         # Generate plots
         plot_data = generate_enhanced_plots(results)
@@ -182,93 +338,6 @@ def run_enhanced_simulation():
         }), 500
 
 
-def generate_mock_results(params):
-    """Generate mock results for testing UI"""
-    days = params['simulation_days']
-    sample_points = min(days // 30, 365)  # Sample monthly, max 365 points
-    sample_points = max(sample_points, 10)  # Minimum 10 points
-
-    # Get population parameters
-    focal_pop = params.get('focal_population', params.get('initial_adult_population', 50))
-    focal_capacity = params.get('focal_carrying_capacity', params.get('carrying_capacity', 200))
-
-    # Population dynamics
-    arrivals_per_year = params.get('arrivals_per_year', 10)
-    departures_per_year = params.get('departures_per_year', 10)
-    arrivals_per_day = arrivals_per_year / 365.0
-    departures_per_day = departures_per_year / 365.0
-
-    results = {
-        'days': list(range(0, days, max(days // sample_points, 1))),
-        'focal_population_sizes': [],
-        'population_sizes': [],
-        'females_in_estrus': [],
-        'pregnant_females': [],
-        'males_monopolizing': [],
-        'arrivals': [],
-        'departures': [],
-        'total_births': 0,
-        'total_arrivals': 0,
-        'total_departures': 0,
-        'kitten_survival_rate': 0.25,
-    }
-
-    # Track population over time
-    current_pop = focal_pop
-
-    for day in results['days']:
-        # Population grows then stabilizes towards capacity
-        growth_factor = min(1.0, day / (days * 0.3))
-        target_pop = int(focal_pop * (1 + growth_factor * 0.5))
-        target_pop = min(target_pop, focal_capacity)
-
-        # Apply fertility control effect
-        fc_effect = (
-            params.get('pct_females_spayed', 0) * 0.5 +
-            params.get('pct_males_neutered', 0) * 0.3 +
-            params.get('pct_females_amh', 0) * 0.4
-        ) / 100.0
-
-        pop_with_control = int(target_pop * (1 - fc_effect * 0.5))
-
-        # Apply arrivals and departures
-        arrivals_today = arrivals_per_day
-        departures_today = departures_per_day
-
-        # Update population
-        current_pop = pop_with_control + arrivals_today - departures_today
-        current_pop = max(0, min(current_pop, focal_capacity))
-
-        results['focal_population_sizes'].append(current_pop)
-        results['population_sizes'].append(current_pop)
-        results['arrivals'].append(arrivals_today)
-        results['departures'].append(departures_today)
-
-        results['total_arrivals'] += arrivals_today
-        results['total_departures'] += departures_today
-
-        # Estimate females in estrus (7 days out of 16-day cycle)
-        fertile_females = current_pop // 2 * (1 - params.get('pct_females_spayed', 0) / 100)
-        estrus_females = int(fertile_females * (7 / 16))
-        results['females_in_estrus'].append(estrus_females)
-
-        # Estimate pregnant females
-        pregnant = int(fertile_females * 0.3)
-        results['pregnant_females'].append(pregnant)
-
-        # Estimate monopolizing males
-        monopolizing = int(estrus_females * 0.7)
-        results['males_monopolizing'].append(monopolizing)
-
-    # Calculate total births
-    avg_litters_per_year = params.get('litters_per_year', 2.0)
-    time_years = days / 365.0
-    total_births_no_control = int(focal_pop / 2 * avg_litters_per_year * time_years * params.get('mean_litter_size', 4))
-    results['total_births'] = int(total_births_no_control * (1 - fc_effect * 0.8))
-
-    return results
-
-
 def generate_enhanced_plots(results):
     """Generate population plot"""
 
@@ -276,13 +345,20 @@ def generate_enhanced_plots(results):
 
     days_in_years = [d / 365 for d in results['days']]
 
+    # Confidence band for stochastic ensembles (5th-95th percentile across runs)
+    if results.get('population_sizes_lower') and results.get('population_sizes_upper'):
+        ax.fill_between(days_in_years, results['population_sizes_lower'],
+                        results['population_sizes_upper'], color='#1e3a5f', alpha=0.18,
+                        label=f"90% interval ({results.get('n_simulations', 0)} runs)")
+
     # Plot focal population
     if 'focal_population_sizes' in results:
-        ax.plot(days_in_years, results['focal_population_sizes'], 'b-', linewidth=3,
-                label='Focal Population', marker='o', markersize=4)
+        line_label = 'Mean population' if results.get('n_simulations', 1) > 1 else 'Focal Population'
+        ax.plot(days_in_years, results['focal_population_sizes'], color='#1e3a5f', linewidth=3,
+                label=line_label, marker='o', markersize=4)
         ax.set_title('Population Dynamics Over Time', fontsize=18, fontweight='bold', pad=20)
     else:
-        ax.plot(days_in_years, results['population_sizes'], 'b-', linewidth=3, marker='o', markersize=4)
+        ax.plot(days_in_years, results['population_sizes'], color='#1e3a5f', linewidth=3, marker='o', markersize=4)
         ax.set_title('Population Over Time', fontsize=18, fontweight='bold', pad=20)
 
     ax.set_xlabel('Years', fontsize=14, fontweight='bold')
@@ -433,9 +509,9 @@ def generate_comparison_plot(runs):
     width = 0.35
 
     ax2.bar([i - width/2 for i in x], initial_pops, width, label='Initial Population',
-            color='steelblue', alpha=0.8, edgecolor='black')
+            color='#8ba3c7', alpha=0.9, edgecolor='black')
     ax2.bar([i + width/2 for i in x], final_pops, width, label='Final Population',
-            color='coral', alpha=0.8, edgecolor='black')
+            color='#1e3a5f', alpha=0.9, edgecolor='black')
 
     ax2.set_title('Initial vs Final Population', fontsize=16, fontweight='bold', pad=15)
     ax2.set_ylabel('Population Size', fontsize=12, fontweight='bold')
@@ -517,8 +593,8 @@ def export_comparison():
         writer.writerow([
             'Run Name', 'Timestamp', 'Initial Population', 'Final Population',
             'Change', 'Change %', 'Total Births', 'Kitten Survival %',
-            'Years', 'Females AMH %', 'Females Spayed %', 'Males Neutered %',
-            'Litters/Year', 'Arrivals/Year', 'Departures/Year'
+            'Years', 'Females AMH %', 'Females Spayed %',
+            'Males Neutered %', 'Litters/Year', 'Arrivals/Year', 'Departures/Year'
         ])
 
         # Write data
@@ -526,7 +602,8 @@ def export_comparison():
             writer.writerow([
                 row['name'], row['timestamp'], row['initial_population'],
                 row['final_population'], row['change'], row['change_percent'],
-                row['total_births'], row['kitten_survival_rate'], row['years'],
+                row['total_births'], row['kitten_survival_rate'],
+                row['years'],
                 row['females_amh_pct'], row['females_spayed_pct'],
                 row['males_neutered_pct'], row['litters_per_year'],
                 row['arrivals_per_year'], row['departures_per_year']
@@ -562,13 +639,18 @@ if __name__ == '__main__':
     print("="*70)
     print("\nStarting server with detailed biological parameters...")
     print("Open your browser to: http://localhost:5001")
-    print("\nNew features:")
-    print("  • Estrous cycle modeling (21-day cycle, 8-day estrus)")
-    print("  • Male monopolization dynamics")
+    print("\nFeatures:")
+    print("  • Estrous cycle modeling (16-day cycle, 7-day estrus)")
+    print("  • Male attention / monopolization dynamics")
     print("  • AMH contraception (distinct from surgical sterilization)")
-    print("  • Seasonal breeding restrictions")
-    print("  • 12-week pregnancy + postpartum delay")
-    print("  • All parameters adjustable via sliders!")
+    print("  • Seasonal breeding (Jan-Sep)")
+    print("  • 65-day gestation + 56-day (8-week) postpartum delay")
+    print("  • Fixed biology from biological_parameters.py; management params via sliders")
     print("="*70)
 
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Safe defaults: local-only host, debugger off. Override via environment variables
+    # for development or LAN access, e.g. CATSIM_HOST=0.0.0.0 CATSIM_DEBUG=1
+    host = os.environ.get('CATSIM_HOST', '127.0.0.1')
+    debug = os.environ.get('CATSIM_DEBUG', '0') == '1'
+    port = int(os.environ.get('CATSIM_PORT', '5001'))
+    app.run(debug=debug, host=host, port=port)

@@ -47,9 +47,9 @@ Compare AMH contraception vs surgical sterilization at the same coverage level.
 - All other parameters: default
 
 **Expected Results:**
-- Spaying will show greater population reduction
-- AMH will show more male monopolization dynamics
-- Both will significantly reduce births compared to baseline
+- At equal coverage, AMH and spaying give very similar population outcomes — both fully prevent the treated female's litters
+- AMH only edges ahead when intact males are scarce (the "crowding" effect); see the **How it works** page
+- Both significantly reduce births compared to baseline
 
 ---
 
@@ -112,9 +112,9 @@ Compare targeting different sexes.
    - Good: "AMH 50% - 10yr - CC200"
    - Bad: "Run 3"
 
-3. **Run Multiple Replicates**
-   - Some stochasticity in the model
-   - Run same parameters 2-3 times to check consistency
+3. **Use "Number of Simulations" for uncertainty**
+   - A single run is deterministic (identical every time)
+   - Set Number of Simulations above 1 to get a mean, a 90% confidence band, and the probability of near-eradication
 
 4. **Keep a Log**
    - Export results regularly
@@ -126,11 +126,10 @@ Compare targeting different sexes.
    - Helps bound the possible outcomes
    - Then fill in with intermediate values
 
-## Keyboard Shortcuts & Tips
+## Learn more
 
-- **Shift + Click**: Select multiple consecutive runs
-- **Ctrl/Cmd + Click**: Select non-consecutive runs
-- **Double-click run name**: Quick view of that run's parameters (future feature)
+- **How it works** (`/how-it-works`) — a plain-language walkthrough of the model.
+- **Assumed values & sources** (`/assumptions`) — every fixed biological value with its literature citation.
 
 ## Troubleshooting
 

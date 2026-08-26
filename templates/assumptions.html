@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assumed Values & Sources — Cat Population Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e3a5f;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: #1e3a5f;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 30px; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .intro {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+            color: #444;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        .section { margin-bottom: 30px; }
+        .section h2 {
+            color: #1e3a5f;
+            font-size: 1.25em;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left;
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 12px;
+            font-size: 0.9em;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e6e6e6;
+            vertical-align: top;
+            font-size: 0.9em;
+        }
+        td.param { font-weight: 600; color: #333; width: 26%; }
+        td.value { color: #16293f; font-weight: 600; width: 26%; }
+        td.source { color: #666; }
+        tr:last-child td { border-bottom: none; }
+        .notes {
+            background: #f8f9fa;
+            border-left: 4px solid #1e3a5f;
+            border-radius: 5px;
+            padding: 16px 20px;
+            margin-top: 10px;
+        }
+        .notes h2 { color: #1e3a5f; font-size: 1.15em; margin-bottom: 10px; }
+        .notes ul { padding-left: 20px; color: #444; line-height: 1.7; font-size: 0.92em; }
+        .disclaimer {
+            margin-top: 25px;
+            padding: 16px 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            color: #856404;
+            font-size: 0.88em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Assumed Values &amp; Sources</h1>
+            <p>The fixed parameters behind the Cat Population Simulator</p>
+        </div>
+        <div class="content">
+            <a class="back-link" href="/">&larr; Back to the simulator</a>
+
+            <div class="intro">
+                These are the biological values the model treats as fixed (not adjustable in the interface),
+                together with the peer-reviewed sources they are drawn from or calibrated against. The values
+                shown here are read directly from the simulator's configuration, so they always match what the
+                model actually uses.
+            </div>
+
+            {% for section in sections %}
+            <div class="section">
+                <h2>{{ section.title }}</h2>
+                <table>
+                    <thead>
+                        <tr><th>Parameter</th><th>Value</th><th>Source / basis</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in section.rows %}
+                        <tr>
+                            <td class="param">{{ row.param }}</td>
+                            <td class="value">{{ row.value }}</td>
+                            <td class="source">{{ row.source }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+
+            <div class="notes">
+                <h2>Modeling assumptions</h2>
+                <ul>
+                    {% for note in modeling_notes %}
+                    <li>{{ note }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="disclaimer">
+                This simulator is a simplified model intended for educational and exploratory purposes only.
+                It does not capture all real-world variables and should not be used for policy decisions,
+                medical or veterinary guidance, or other high-stakes planning.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

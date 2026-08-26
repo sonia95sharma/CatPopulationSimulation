@@ -1,217 +1,85 @@
 """
-Enhanced biological parameters for cat population simulation
-Based on detailed estrous cycle and reproductive biology
+Biological constants for the cat population simulation.
+
+SINGLE SOURCE OF TRUTH. Every fixed reproductive parameter used by the model is
+defined here and imported by:
+  - enhanced_simulation_ui.py  (Flask server)
+  - working_simulation_adapter.py  (simulation engine)
+
+Do NOT hardcode these values anywhere else. Values are drawn from peer-reviewed
+literature; per-parameter sources are noted in the comments.
 """
 
-from enum import Enum
-from typing import Optional
+# --- Estrous cycle (Shille, Lundstrom & Stabenfeldt 1979) ---
+# Estrus duration 7.4 d (SD 3.7; range 2-19); interval between estrous periods
+# 9.0 d (SD 7.6; range 4-22). Complete cycle 7.4 + 9.0 = 16.4 d, rounded for the
+# 6-month-timestep model.
+ESTRUS_LENGTH_DAYS = 7
+ESTROUS_CYCLE_DAYS = 16
 
-class ContraceptionType(Enum):
-    """Types of contraception available"""
-    NONE = "none"
-    SPAYED = "spayed"  # Surgical sterilization
-    NEUTERED = "neutered"  # Male surgical sterilization
-    AMH = "amh"  # Anti-Müllerian Hormone contraceptive
+# --- Age at sexual maturity ---
+# Females: mean 8.5 mo (SD 2.0; range 4-18) — Jemmett & Evans 1977; Festing &
+# Bleby 1970 (as reviewed in Ng, Fascetti & Larsen 2023).
+FEMALE_MATURITY_MEAN_MONTHS = 8.5
+FEMALE_MATURITY_SD_MONTHS = 2.0
+FEMALE_MATURITY_MIN_MONTHS = 4.0
+FEMALE_MATURITY_MAX_MONTHS = 18.0
+# Males: mean 10 mo (range 7-12) — Johnson 2022; Kutzler 2022; Pintus et al. 2021.
+MALE_MATURITY_MEAN_MONTHS = 10.0
+MALE_MATURITY_MIN_MONTHS = 7.0
+MALE_MATURITY_MAX_MONTHS = 12.0
 
-class ReproductiveStatus(Enum):
-    """Female reproductive status"""
-    ANESTRUS = "anestrus"  # Not cycling
-    PROESTRUS = "proestrus"  # Preparing for estrus
-    ESTRUS = "estrus"  # In heat, receptive
-    METESTRUS = "metestrus"  # After estrus
-    PREGNANT = "pregnant"  # Pregnant
-    POSTPARTUM = "postpartum"  # Post-birth recovery
+# --- Gestation & postpartum ---
+# Gestation 65 d (Ng et al. 2023). Postpartum delay 8 weeks / 56 d
+# (Wildt et al. 1981; Griffin 2001).
+GESTATION_PERIOD_DAYS = 65
+POSTPARTUM_DELAY_DAYS = 56
 
-class BiologicalParameters:
-    """Container for detailed biological parameters"""
+# --- Litter size (Fournier et al. 2017; Robinson & Cox 1970) ---
+MEAN_LITTER_SIZE = 4.0
+SD_LITTER_SIZE = 1.9
+MIN_LITTER_SIZE = 1
+MAX_LITTER_SIZE = 9
 
-    # Estrous cycle parameters (in days)
-    ESTROUS_CYCLE_LENGTH = 21  # Days per complete cycle
-    ESTRUS_LENGTH = 8  # Days female is receptive
-    PROESTRUS_LENGTH = 2  # Days before estrus
-    METESTRUS_LENGTH = 11  # Days after estrus (21 - 8 - 2)
+# --- Density-dependent kitten mortality ---
+# Fraction of kittens that die before ~6 months. The engine interpolates from the
+# base (low-density) rate up to the high-density rate as the population approaches
+# carrying capacity. Calibrated so the model reproduces the unmanaged growth rate of
+# Miller et al. 2014 (~18-20%/yr) and the sterilization response of Boone et al. 2019;
+# these rates are within the high kitten mortality reported for free-roaming cats.
+BASE_KITTEN_MORTALITY = 0.90           # at low density
+HIGH_DENSITY_KITTEN_MORTALITY = 0.95   # at carrying capacity
 
-    # Reproductive maturity (in days)
-    FEMALE_MATURITY_MIN = 180  # 6 months
-    FEMALE_MATURITY_MAX = 240  # 8 months
-    MALE_MATURITY = 365  # 12 months
+# --- Breeding season (temperate; cats are seasonally polyestrous) ---
+BREEDING_SEASON_START_MONTH = 1  # January
+BREEDING_SEASON_END_MONTH = 9    # September
 
-    # Breeding season (months when breeding does NOT occur)
-    NON_BREEDING_MONTHS = [10, 11, 12]  # October, November, December
+# --- Aggregate model proxy ---
+# Fraction of each adult bucket treated as sexually mature breeders.
+MATURE_FRACTION = 0.85
 
-    # Male monopolization (in days) - how long male guards female
-    MONOPOLIZATION_INTACT = 8  # Intact cycling females
-    MONOPOLIZATION_SPAYED = 0  # Spayed females (no attraction)
-    MONOPOLIZATION_AMH = 21  # AMH-treated females (full cycle)
+# Maturation lag, in 6-month timesteps: how long kittens remain non-breeding
+# juveniles before entering the breeding population. Derived from the mean age at
+# sexual maturity (~8.5 mo females / ~10 mo males) combined with the seasonal
+# reality that kittens born in one breeding season generally do not breed until the
+# next one. With 6-month timesteps a lag of 1 places first breeding at ~12 months.
+MATURATION_LAG_TIMESTEPS = 1
 
-    # Pregnancy and recovery
-    GESTATION_PERIOD = 63  # Days (approximately 9 weeks)
-    POSTPARTUM_DELAY = 21  # Days before can conceive again
-    TOTAL_PREGNANCY_DELAY = GESTATION_PERIOD + POSTPARTUM_DELAY  # 84 days = 12 weeks
-
-    # Litter parameters
-    MEAN_LITTER_SIZE = 4.0
-    SD_LITTER_SIZE = 1.5
-    MAX_LITTER_SIZE = 8
-
-    # Kitten mortality
-    KITTEN_MORTALITY_LOW_DENSITY = 0.75  # 75% die before 6 months at low density
-    KITTEN_MORTALITY_HIGH_DENSITY = 0.90  # 90% die at high density
-
-    # Adult mortality (per day)
-    ADULT_DAILY_MORTALITY = 0.10 / 365  # 10% annual mortality
-
-    @classmethod
-    def get_monopolization_days(cls, contraception_type: ContraceptionType) -> int:
-        """Get male monopolization period based on female's contraception status"""
-        if contraception_type == ContraceptionType.SPAYED:
-            return cls.MONOPOLIZATION_SPAYED
-        elif contraception_type == ContraceptionType.AMH:
-            return cls.MONOPOLIZATION_AMH
-        else:
-            return cls.MONOPOLIZATION_INTACT
-
-    @classmethod
-    def is_breeding_season(cls, day_of_year: int) -> bool:
-        """Check if current day is in breeding season"""
-        # Convert day of year to month (approximate)
-        month = (day_of_year // 30) + 1
-        return month not in cls.NON_BREEDING_MONTHS
-
-    @classmethod
-    def get_female_maturity_age(cls, variation: float = 0.0) -> int:
-        """
-        Get female maturity age with optional variation
-        variation: 0.0 = minimum (6 months), 1.0 = maximum (8 months)
-        """
-        age_range = cls.FEMALE_MATURITY_MAX - cls.FEMALE_MATURITY_MIN
-        return cls.FEMALE_MATURITY_MIN + int(age_range * variation)
-
-
-class EnhancedIndividualTraits:
-    """Additional traits for enhanced biological modeling"""
-
-    def __init__(self):
-        # Estrous cycle tracking
-        self.days_in_cycle = 0  # Current day in estrous cycle
-        self.reproductive_status = ReproductiveStatus.ANESTRUS
-        self.last_estrus_day = None
-
-        # Pregnancy tracking
-        self.pregnant = False
-        self.days_pregnant = 0
-        self.expected_litter_size = 0
-
-        # Postpartum tracking
-        self.days_postpartum = 0
-
-        # Male monopolization tracking
-        self.being_monopolized = False
-        self.monopolizing_male_id = None
-        self.days_monopolized = 0
-
-        # Contraception details
-        self.contraception_type = ContraceptionType.NONE
-        self.days_on_contraception = 0
-
-        # AMH-specific (if applicable)
-        self.amh_administered = False
-        self.amh_effectiveness = 1.0  # 0.0 = ineffective, 1.0 = fully effective
-
-    def update_cycle_status(self, days_elapsed: int = 1):
-        """Update reproductive cycle status"""
-        if self.pregnant:
-            self.days_pregnant += days_elapsed
-            return
-
-        if self.days_postpartum > 0:
-            self.days_postpartum = max(0, self.days_postpartum - days_elapsed)
-            if self.days_postpartum == 0:
-                self.reproductive_status = ReproductiveStatus.ANESTRUS
-                self.days_in_cycle = 0
-            return
-
-        # Update cycle
-        self.days_in_cycle = (self.days_in_cycle + days_elapsed) % BiologicalParameters.ESTROUS_CYCLE_LENGTH
-
-        # Determine status based on cycle day
-        if self.days_in_cycle < BiologicalParameters.PROESTRUS_LENGTH:
-            self.reproductive_status = ReproductiveStatus.PROESTRUS
-        elif self.days_in_cycle < (BiologicalParameters.PROESTRUS_LENGTH + BiologicalParameters.ESTRUS_LENGTH):
-            self.reproductive_status = ReproductiveStatus.ESTRUS
-        else:
-            self.reproductive_status = ReproductiveStatus.METESTRUS
-
-    def is_receptive(self) -> bool:
-        """Check if female is receptive to mating"""
-        return (self.reproductive_status == ReproductiveStatus.ESTRUS and
-                not self.pregnant and
-                self.days_postpartum == 0)
-
-    def can_conceive(self) -> bool:
-        """Check if female can conceive"""
-        if self.contraception_type in [ContraceptionType.SPAYED]:
-            return False
-
-        if self.contraception_type == ContraceptionType.AMH:
-            # AMH prevents conception but allows cycling
-            return False
-
-        return self.is_receptive()
-
-    def initiate_pregnancy(self, litter_size: int):
-        """Start pregnancy"""
-        self.pregnant = True
-        self.days_pregnant = 0
-        self.expected_litter_size = litter_size
-        self.reproductive_status = ReproductiveStatus.PREGNANT
-
-    def give_birth(self) -> int:
-        """Give birth and return litter size"""
-        litter_size = self.expected_litter_size
-        self.pregnant = False
-        self.days_pregnant = 0
-        self.days_postpartum = BiologicalParameters.POSTPARTUM_DELAY
-        self.reproductive_status = ReproductiveStatus.POSTPARTUM
-        return litter_size
-
-
-# Default parameter configuration for UI
-DEFAULT_BIOLOGICAL_CONFIG = {
-    # Estrous cycle
-    "estrous_cycle_length": BiologicalParameters.ESTROUS_CYCLE_LENGTH,
-    "estrus_length": BiologicalParameters.ESTRUS_LENGTH,
-
-    # Maturity ages (in months for UI)
-    "female_maturity_min_months": 6,
-    "female_maturity_max_months": 8,
-    "male_maturity_months": 12,
-
-    # Breeding season
-    "breeding_season_start_month": 1,
-    "breeding_season_end_month": 9,
-
-    # Male monopolization (in days)
-    "monopolization_intact_days": BiologicalParameters.MONOPOLIZATION_INTACT,
-    "monopolization_amh_days": BiologicalParameters.MONOPOLIZATION_AMH,
-
-    # Pregnancy
-    "gestation_period_days": BiologicalParameters.GESTATION_PERIOD,
-    "postpartum_delay_days": BiologicalParameters.POSTPARTUM_DELAY,
-
-    # Litter parameters
-    "mean_litter_size": BiologicalParameters.MEAN_LITTER_SIZE,
-    "sd_litter_size": BiologicalParameters.SD_LITTER_SIZE,
-    "max_litter_size": BiologicalParameters.MAX_LITTER_SIZE,
-
-    # Population structure (from Boone et al. 2019 paper)
-    "focal_population": 50,
-    "focal_carrying_capacity": 200,
-    "neighborhood_population": 200,
-    "neighborhood_carrying_capacity": 800,
-
-    # Dispersal and immigration (from paper)
-    "immigration_rate": 2.0,  # % per 6 months
-    "dispersal_rate": 2.0,  # % per 6 months
-    "litter_abandonment_per_year": 2,  # Mean litters abandoned per year
+# --- AMH vs intact breeding-day fractions (male-attention / crowding model) ---
+# Share of days on which a female is observed mating, from controlled trials. An
+# intact female breeds on relatively few days because she is pregnant/postpartum most
+# of the time; an AMH-treated female never conceives, so she stays available and mates
+# on far more days. This difference in availability is what lets AMH females draw male
+# attention away from fertile females. Values depend on age at AMH treatment.
+AMH_BREEDING_DAY_FRACTIONS = {
+    'kitten': {'intact': 0.15, 'amh': 0.40},   # AMH applied to kittens
+    'adult':  {'intact': 0.10, 'amh': 0.23},   # AMH applied to adults
 }
+DEFAULT_AMH_TREATMENT_AGE = 'adult'
+
+# --- Defaults for user-adjustable parameters (the UI normally supplies these;
+#     these values are only used if a parameter is missing from the request). ---
+DEFAULT_LITTERS_PER_YEAR = 2.0
+DEFAULT_MALE_BREEDING_CAPACITY_PER_DAY = 3.0
+DEFAULT_AMH_MONOPOLIZATION_DAYS = 15
+DEFAULT_ADULT_MORTALITY_ANNUAL = 10.0
