@@ -86,7 +86,9 @@ def run_adapted_simulation(params):
     neuter_abs = params.get('fc_males_neutered_absolute', 0)
 
     carrying_capacity = params.get('focal_carrying_capacity', initial_pop)
-    use_carrying_capacity = params.get('use_carrying_capacity', True)
+    # A non-positive carrying capacity is meaningless; treat it as "no cap" so density
+    # calculations never divide by zero.
+    use_carrying_capacity = params.get('use_carrying_capacity', True) and carrying_capacity > 0
 
     # Running tally of how many animals receive each treatment over the whole run
     total_amh_treated = 0.0
