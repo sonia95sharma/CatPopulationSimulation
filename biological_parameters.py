@@ -65,17 +65,15 @@ MATURE_FRACTION = 0.85
 # next one. With 6-month timesteps a lag of 1 places first breeding at ~12 months.
 MATURATION_LAG_TIMESTEPS = 1
 
-# --- AMH vs intact breeding-day fractions (male-attention / crowding model) ---
-# Share of days on which a female is observed mating, from controlled trials. An
-# intact female breeds on relatively few days because she is pregnant/postpartum most
-# of the time; an AMH-treated female never conceives, so she stays available and mates
-# on far more days. This difference in availability is what lets AMH females draw male
-# attention away from fertile females. Values depend on age at AMH treatment.
-AMH_BREEDING_DAY_FRACTIONS = {
-    'kitten': {'intact': 0.15, 'amh': 0.40},   # AMH applied to kittens
-    'adult':  {'intact': 0.10, 'amh': 0.23},   # AMH applied to adults
-}
-DEFAULT_AMH_TREATMENT_AGE = 'adult'
+# --- Breeding-day fractions (male-attention / crowding model) ---
+# Share of days on which a female is observed mating. An intact female mates on
+# relatively few days because she is pregnant/postpartum most of the time; an
+# AMH-treated female never conceives, so she stays available and mates on more days.
+# This difference in availability is what lets AMH females draw male attention away
+# from fertile females. Values from the prepubertal AMH gene-therapy trial: treated
+# females bred on ~34-47% of days vs ~15% for intact controls (PMC12663202).
+INTACT_BREEDING_DAY_FRACTION = 0.15
+AMH_BREEDING_DAY_FRACTION = 0.40
 
 # --- Defaults for user-adjustable parameters (the UI normally supplies these;
 #     these values are only used if a parameter is missing from the request). ---

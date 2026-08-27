@@ -19,7 +19,7 @@ def base(**kw):
         litters_per_year=2.0, mean_litter_size=4.0, adult_mortality_annual=10,
         arrivals_per_year=0, departures_per_year=0,
         base_kitten_mortality=0.90, high_density_mortality=0.95,
-        male_breeding_capacity_per_day=3.0, amh_treatment_age='adult',
+        male_breeding_capacity_per_day=3.0,
         pct_females_amh=0, pct_females_spayed=0, pct_males_neutered=0,
         fc_unit='percentage', fc_timing='one-time',
         use_carrying_capacity=True, focal_carrying_capacity=200,
@@ -95,12 +95,12 @@ def test_amh_crowding_only_when_males_scarce():
     amh = run_adapted_simulation(base(pct_females_amh=60, fc_timing='yearly'))
     assert abs(final_pop(spay) - final_pop(amh)) < 1.0, "AMH and spay should match when males are not limiting"
 
-    # Scarce males + kitten treatment: AMH should suppress at least as much as spay.
+    # Scarce males: AMH should suppress at least as much as spay (crowding).
     scarce = dict(male_percentage=8, male_breeding_capacity_per_day=1.0,
                   focal_carrying_capacity=10**9, use_carrying_capacity=False, fc_timing='yearly')
     spay_s = run_adapted_simulation(base(pct_females_spayed=50, **scarce))
-    amh_s = run_adapted_simulation(base(pct_females_amh=50, amh_treatment_age='kitten', **scarce))
-    assert final_pop(amh_s) <= final_pop(spay_s) + 1e-6, "kitten AMH should not do worse than spay when males are scarce"
+    amh_s = run_adapted_simulation(base(pct_females_amh=50, **scarce))
+    assert final_pop(amh_s) <= final_pop(spay_s) + 1e-6, "AMH should not do worse than spay when males are scarce"
 
 
 def test_stochastic_ensemble_shape():

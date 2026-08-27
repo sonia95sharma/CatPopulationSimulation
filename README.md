@@ -49,7 +49,7 @@ http://localhost:5001
 2. **Set population dynamics**: annual adult mortality, and yearly arrivals (intact immigrants/abandonments) and departures/removals.
 3. **Set breeding parameters**: average litters per year, and male breeding capacity.
 4. **Configure fertility control**: choose percentage or absolute numbers, one-time or yearly, then set AMH / spay / neuter levels.
-5. **(Optional) age at AMH treatment (kitten/adult) and number of simulations** (1 = deterministic; more = stochastic ensemble).
+5. **(Optional) number of simulations** (1 = deterministic; more = stochastic ensemble).
 6. **Click "Run Enhanced Simulation"**, then optionally name the run and **Save for Comparison**.
 
 ## Fixed biological parameters
@@ -67,7 +67,7 @@ These values are not user-adjustable and are defined in one place (`biological_p
 | Kitten mortality | 90% (low density) → 95% (at capacity) | Calibrated to Miller 2014 / Boone 2019 |
 | Breeding season | January–September | Seasonally polyestrous (temperate) |
 
-Adjustable parameters (litters/year, male breeding capacity, adult mortality, population sizes, arrivals/departures, interventions, age at AMH treatment, number of simulations) are set in the interface.
+Adjustable parameters (litters/year, male breeding capacity, adult mortality, population sizes, arrivals/departures, interventions, number of simulations) are set in the interface.
 
 ## Key modeling notes
 

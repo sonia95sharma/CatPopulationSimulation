@@ -27,7 +27,7 @@ from biological_parameters import (
     BASE_KITTEN_MORTALITY, HIGH_DENSITY_KITTEN_MORTALITY,
     BREEDING_SEASON_START_MONTH, BREEDING_SEASON_END_MONTH,
     MATURE_FRACTION, MATURATION_LAG_TIMESTEPS,
-    AMH_BREEDING_DAY_FRACTIONS,
+    INTACT_BREEDING_DAY_FRACTION, AMH_BREEDING_DAY_FRACTION,
 )
 from datetime import datetime
 import csv
@@ -131,16 +131,13 @@ def assumptions():
         {
             'title': 'AMH contraception behavior (male-attention model)',
             'rows': [
-                {'param': 'Breeding-day fraction — treated as adults',
-                 'value': f"intact {int(AMH_BREEDING_DAY_FRACTIONS['adult']['intact']*100)}% of days / "
-                          f"AMH {int(AMH_BREEDING_DAY_FRACTIONS['adult']['amh']*100)}% of days",
-                 'source': 'Controlled AMH gene-therapy mating trials (adult treatment). Treated females never '
-                           'conceive, so they stay available to mate more than intact females, which are pregnant '
-                           'or recovering most of the year.'},
-                {'param': 'Breeding-day fraction — treated as kittens',
-                 'value': f"intact {int(AMH_BREEDING_DAY_FRACTIONS['kitten']['intact']*100)}% of days / "
-                          f"AMH {int(AMH_BREEDING_DAY_FRACTIONS['kitten']['amh']*100)}% of days",
-                 'source': 'Prepubertal AMH gene-therapy trial (treated bred ~34–47% of days vs ~15% for controls).'},
+                {'param': 'Breeding-day fraction (days mating)',
+                 'value': f"intact {int(INTACT_BREEDING_DAY_FRACTION*100)}% of days / "
+                          f"AMH-treated {int(AMH_BREEDING_DAY_FRACTION*100)}% of days",
+                 'source': 'Prepubertal AMH gene-therapy trial: treated females bred on ~34–47% of days vs ~15% '
+                           'for intact controls (PMC12663202). Treated females never conceive, so they stay '
+                           'available to mate more than intact females, which are pregnant or recovering most of '
+                           'the year.'},
                 {'param': 'AMH contraceptive efficacy',
                  'value': '100% (modeled)',
                  'source': 'Adult and prepubertal trials both reported zero pregnancies in treated females (small '
@@ -263,8 +260,6 @@ def run_enhanced_simulation():
 
             # Male breeding capacity (still adjustable)
             'male_breeding_capacity_per_day': float(data.get('male_breeding_capacity_per_day', 3.0)),
-            # Age at AMH treatment sets the breeding-day fractions used for crowding
-            'amh_treatment_age': data.get('amh_treatment_age', 'adult'),
 
             # Breeding parameters (still adjustable)
             'litters_per_year': float(data.get('litters_per_year', 2.0)),

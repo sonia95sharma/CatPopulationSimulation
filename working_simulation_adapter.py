@@ -28,7 +28,7 @@ from biological_parameters import (
     DEFAULT_LITTERS_PER_YEAR,
     DEFAULT_MALE_BREEDING_CAPACITY_PER_DAY, DEFAULT_AMH_MONOPOLIZATION_DAYS,
     DEFAULT_ADULT_MORTALITY_ANNUAL,
-    AMH_BREEDING_DAY_FRACTIONS, DEFAULT_AMH_TREATMENT_AGE,
+    INTACT_BREEDING_DAY_FRACTION, AMH_BREEDING_DAY_FRACTION,
 )
 
 DAYS_IN_TIMESTEP = 182.5  # 6 months
@@ -158,12 +158,9 @@ def run_adapted_simulation(params):
     # Male-attention demand uses empirically-observed breeding-day fractions (the share
     # of days each female type is actually seen mating). Intact females mate on few days
     # because they are pregnant/postpartum much of the time; AMH females never conceive
-    # so they stay available and mate on more days. The fractions depend on age at AMH
-    # treatment (kitten vs adult).
-    amh_treatment_age = params.get('amh_treatment_age', DEFAULT_AMH_TREATMENT_AGE)
-    _bd = AMH_BREEDING_DAY_FRACTIONS.get(amh_treatment_age, AMH_BREEDING_DAY_FRACTIONS['adult'])
-    intact_breeding_fraction = _bd['intact']
-    amh_breeding_fraction = _bd['amh']
+    # so they stay available and mate on more days.
+    intact_breeding_fraction = INTACT_BREEDING_DAY_FRACTION
+    amh_breeding_fraction = AMH_BREEDING_DAY_FRACTION
     base_kitten_mortality = params.get('base_kitten_mortality', BASE_KITTEN_MORTALITY)
     high_density_mortality = params.get('high_density_mortality', HIGH_DENSITY_KITTEN_MORTALITY)
     annual_adult_mortality = params.get('adult_mortality_annual', DEFAULT_ADULT_MORTALITY_ANNUAL) / 100.0
