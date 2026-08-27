@@ -299,6 +299,11 @@ def run_enhanced_simulation():
             # Carrying capacity toggle (False = infinite growth, no maximum population)
             'use_carrying_capacity': bool(data.get('use_carrying_capacity', True)),
 
+            # Cost of management strategies (per treated animal)
+            'cost_amh_per_female': float(data.get('cost_amh_per_female', 50)),
+            'cost_spay_per_female': float(data.get('cost_spay_per_female', 50)),
+            'cost_neuter_per_male': float(data.get('cost_neuter_per_male', 40)),
+
 
             # Legacy support
             'initial_adult_population': int(data.get('initial_adult_population',
@@ -555,6 +560,7 @@ def generate_comparison_summary(runs):
             'change_percent': round(change_pct, 1),
             'total_births': results.get('total_births', 0),
             'kitten_survival_rate': round(results.get('kitten_survival_rate', 0) * 100, 1),
+            'total_cost': round(results.get('total_cost', 0)),
             'years': params.get('simulation_years', 'N/A'),
             'females_amh_pct': params.get('pct_females_amh', 0),
             'females_spayed_pct': params.get('pct_females_spayed', 0),
@@ -594,7 +600,7 @@ def export_comparison():
         writer.writerow([
             'Run Name', 'Timestamp', 'Initial Population', 'Final Population',
             'Change', 'Change %', 'Total Births', 'Kitten Survival %',
-            'Years', 'Females AMH %', 'Females Spayed %',
+            'Est. Program Cost', 'Years', 'Females AMH %', 'Females Spayed %',
             'Males Neutered %', 'Litters/Year', 'Arrivals/Year', 'Departures/Year'
         ])
 
@@ -604,7 +610,7 @@ def export_comparison():
                 row['name'], row['timestamp'], row['initial_population'],
                 row['final_population'], row['change'], row['change_percent'],
                 row['total_births'], row['kitten_survival_rate'],
-                row['years'],
+                row.get('total_cost', 0), row['years'],
                 row['females_amh_pct'], row['females_spayed_pct'],
                 row['males_neutered_pct'], row['litters_per_year'],
                 row['arrivals_per_year'], row['departures_per_year']

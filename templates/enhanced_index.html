@@ -522,6 +522,35 @@
                     </div>
                 </div>
 
+                <!-- 5. Cost of Reproductive Management Strategies -->
+                <div class="control-section">
+                    <h3>Cost of Reproductive Management Strategies</h3>
+
+                    <div class="control-group">
+                        <label for="cost_amh_per_female">Cost of AMH contraception per female</label>
+                        <div class="slider-container">
+                            <input type="range" id="cost_amh_per_female" min="10" max="500" value="50" step="5">
+                            <span class="value-display" id="cost_amh_per_female_value">$50</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="cost_spay_per_female">Cost of spaying per female</label>
+                        <div class="slider-container">
+                            <input type="range" id="cost_spay_per_female" min="10" max="500" value="50" step="5">
+                            <span class="value-display" id="cost_spay_per_female_value">$50</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="cost_neuter_per_male">Cost of neutering per male</label>
+                        <div class="slider-container">
+                            <input type="range" id="cost_neuter_per_male" min="10" max="200" value="40" step="5">
+                            <span class="value-display" id="cost_neuter_per_male_value">$40</span>
+                        </div>
+                    </div>
+                </div>
+
 
                 <!-- 7. Simulation Settings -->
                 <div class="control-section">
@@ -650,6 +679,10 @@
             departures_per_year: 10,
             // Mortality
             adult_mortality_annual: 10,
+            // Cost of management strategies
+            cost_amh_per_female: 50,
+            cost_spay_per_female: 50,
+            cost_neuter_per_male: 40,
             // Fertility control options
             fc_unit: 'percentage',
             fc_timing: 'one-time'
@@ -664,7 +697,9 @@
         // Update slider value displays
         function updateSliderDisplay(sliderId, value) {
             const display = document.getElementById(sliderId + '_value');
-            if (sliderId.includes('month') && sliderId.includes('season')) {
+            if (sliderId.startsWith('cost_')) {
+                display.textContent = '$' + Math.round(value);
+            } else if (sliderId.includes('month') && sliderId.includes('season')) {
                 const monthIndex = parseInt(value) - 1;
                 display.textContent = MONTH_NAMES[monthIndex];
             } else if (sliderId.includes('_months')) {
@@ -894,6 +929,7 @@
             const statsGrid = document.getElementById('statsGrid');
             const finalPop = Math.round(results.population_sizes[results.population_sizes.length - 1]);
             const simYears = data.parameters_used.simulation_years || 10;
+            const totalCost = results.total_cost || 0;
             const effLitters = results.effective_litters_per_year;
             const maxLitters = results.max_litters_per_year;
             const reqLitters = data.parameters_used.litters_per_year;
@@ -930,6 +966,10 @@
                 <div class="stat-card">
                     <div class="stat-label">Kitten Survival</div>
                     <div class="stat-value">${(results.kitten_survival_rate * 100).toFixed(1)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Est. Program Cost${stochastic ? ' (mean)' : ''}</div>
+                    <div class="stat-value">$${Math.round(totalCost).toLocaleString()}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Litters/yr (used)</div>
@@ -1103,6 +1143,7 @@
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Change</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Total Births</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Kitten Survival</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Est. Cost</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">AMH %</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Spayed %</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Neutered %</th>
@@ -1122,6 +1163,7 @@
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center; color: ${changeColor}; font-weight: bold;">${run.change > 0 ? '+' : ''}${run.change} (${run.change_percent > 0 ? '+' : ''}${run.change_percent}%)</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${run.total_births}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${run.kitten_survival_rate}%</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">$${(run.total_cost || 0).toLocaleString()}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${run.females_amh_pct}%</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${run.females_spayed_pct}%</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${run.males_neutered_pct}%</td>

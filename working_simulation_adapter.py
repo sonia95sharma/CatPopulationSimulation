@@ -90,6 +90,11 @@ def run_adapted_simulation(params):
     # calculations never divide by zero.
     use_carrying_capacity = params.get('use_carrying_capacity', True) and carrying_capacity > 0
 
+    # Cost of management strategies (per treated animal)
+    cost_amh_per_female = params.get('cost_amh_per_female', 50)
+    cost_spay_per_female = params.get('cost_spay_per_female', 50)
+    cost_neuter_per_male = params.get('cost_neuter_per_male', 40)
+
     # Running tally of how many animals receive each treatment over the whole run
     total_amh_treated = 0.0
     total_spayed = 0.0
@@ -329,6 +334,12 @@ def run_adapted_simulation(params):
     kittens_survived = total_births - total_kitten_deaths
     kitten_survival_rate = kittens_survived / total_births if total_births > 0 else 0
 
+    # Cost of management strategies (number treated x per-animal cost)
+    cost_amh_total = total_amh_treated * cost_amh_per_female
+    cost_spay_total = total_spayed * cost_spay_per_female
+    cost_neuter_total = total_neutered * cost_neuter_per_male
+    total_cost = cost_amh_total + cost_spay_total + cost_neuter_total
+
     return {
         'days': days,
         'focal_population_sizes': interpolate_to_days(population),
@@ -347,6 +358,10 @@ def run_adapted_simulation(params):
         'total_amh_treated': int(round(total_amh_treated)),
         'total_spayed': int(round(total_spayed)),
         'total_neutered': int(round(total_neutered)),
+        'total_cost': round(total_cost, 2),
+        'cost_amh_total': round(cost_amh_total, 2),
+        'cost_spay_total': round(cost_spay_total, 2),
+        'cost_neuter_total': round(cost_neuter_total, 2),
         'max_litters_per_year': round(max_litters_per_year, 2),
         'effective_litters_per_year': round(effective_litters_per_year, 2),
     }
@@ -410,6 +425,10 @@ def run_simulation_ensemble(params, n_simulations):
         'total_amh_treated': int(round(avg('total_amh_treated'))),
         'total_spayed': int(round(avg('total_spayed'))),
         'total_neutered': int(round(avg('total_neutered'))),
+        'total_cost': round(avg('total_cost'), 2),
+        'cost_amh_total': round(avg('cost_amh_total'), 2),
+        'cost_spay_total': round(avg('cost_spay_total'), 2),
+        'cost_neuter_total': round(avg('cost_neuter_total'), 2),
         'max_litters_per_year': base['max_litters_per_year'],
         'effective_litters_per_year': base['effective_litters_per_year'],
         'n_simulations': n,

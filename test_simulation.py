@@ -23,6 +23,7 @@ def base(**kw):
         pct_females_amh=0, pct_females_spayed=0, pct_males_neutered=0,
         fc_unit='percentage', fc_timing='one-time',
         use_carrying_capacity=True, focal_carrying_capacity=200,
+        cost_amh_per_female=100, cost_spay_per_female=80, cost_neuter_per_male=40,
     )
     p.update(kw)
     return p
@@ -52,11 +53,19 @@ def test_infinite_growth_when_capacity_disabled():
 def test_no_treatment_is_counted_when_none_applied():
     r = run_adapted_simulation(base())
     assert r['total_spayed'] == 0 and r['total_amh_treated'] == 0 and r['total_neutered'] == 0
+    assert r['total_cost'] == 0, "no treatment should cost nothing"
 
 
 def test_treatment_is_counted():
     r = run_adapted_simulation(base(pct_females_spayed=50))
     assert r['total_spayed'] > 0, "spaying should record the number of animals treated"
+
+
+def test_cost_tracks_treatment():
+    r = run_adapted_simulation(base(pct_females_spayed=50))
+    assert r['cost_spay_total'] > 0 and r['total_cost'] > 0
+    total = r['cost_amh_total'] + r['cost_spay_total'] + r['cost_neuter_total']
+    assert abs(r['total_cost'] - total) < 0.01, "total cost should be the sum of the components"
 
 
 def test_spay_and_amh_combine():
