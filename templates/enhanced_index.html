@@ -621,6 +621,7 @@
                     <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px; display: flex; gap: 10px; align-items: center;">
                         <input type="text" id="runName" placeholder="Run name (optional)" style="flex: 1; padding: 10px; border: 2px solid #ccc; border-radius: 5px;">
                         <button class="btn btn-primary" id="saveRun" style="width: auto; padding: 10px 20px; margin: 0;">Save for Comparison</button>
+                        <button class="btn btn-secondary" id="downloadPdf" style="width: auto; padding: 10px 20px; margin: 0;">Download PDF</button>
                     </div>
                 </div>
 
@@ -1037,6 +1038,41 @@
                 }
             } catch (error) {
                 alert('Failed to save run: ' + error.message);
+            }
+        });
+
+        document.getElementById('downloadPdf').addEventListener('click', async function() {
+            if (!lastSimulationResults) {
+                alert('No simulation results to export. Please run a simulation first.');
+                return;
+            }
+            const name = document.getElementById('runName').value.trim();
+            try {
+                const response = await fetch('/export_pdf', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        results: lastSimulationResults.results,
+                        parameters: lastSimulationResults.parameters_used,
+                        name: name
+                    })
+                });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `cat_simulation_${new Date().getTime()}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    const data = await response.json();
+                    alert('Error exporting PDF: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to export PDF: ' + error.message);
             }
         });
 

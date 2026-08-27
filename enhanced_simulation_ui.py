@@ -637,6 +637,104 @@ def export_comparison():
         }), 500
 
 
+def generate_pdf_report(results, parameters, name):
+    """Render a one-page PDF report (chart + results + parameters) for a single run."""
+    p = parameters or {}
+    days_years = [d / 365 for d in results['days']]
+    stochastic = (results.get('n_simulations', 1) or 1) > 1
+
+    fig = plt.figure(figsize=(8.5, 11))
+    fig.suptitle('Cat Population Simulation', fontsize=18, fontweight='bold', y=0.965)
+    fig.text(0.5, 0.938, name or 'Simulation results', ha='center', fontsize=12, style='italic')
+    fig.text(0.5, 0.920, datetime.now().strftime('%Y-%m-%d %H:%M'), ha='center', fontsize=9, color='gray')
+
+    # Chart
+    ax = fig.add_axes([0.10, 0.55, 0.82, 0.32])
+    if results.get('population_sizes_lower') and results.get('population_sizes_upper'):
+        ax.fill_between(days_years, results['population_sizes_lower'], results['population_sizes_upper'],
+                        color='#1e3a5f', alpha=0.18, label='90% interval')
+    ax.plot(days_years, results['focal_population_sizes'], color='#1e3a5f', linewidth=2.5,
+            marker='o', markersize=3, label='Mean population' if stochastic else 'Population')
+    ax.set_xlabel('Years'); ax.set_ylabel('Population size')
+    ax.grid(True, alpha=0.3, linestyle='--'); ax.legend(loc='best', fontsize=9)
+    ax.set_title('Population over time', fontsize=12, fontweight='bold')
+
+    # Results column
+    initial = round(results['focal_population_sizes'][0])
+    final = round(results['focal_population_sizes'][-1])
+    change_pct = ((final - initial) / initial * 100) if initial else 0
+    stats = [
+        f"Initial population : {initial}",
+        f"Final population   : {final}" + (
+            f"  (90% CI {round(results['final_population_lower'])}"
+            f"-{round(results['final_population_upper'])})" if stochastic else ""),
+        f"Change             : {change_pct:+.1f}%",
+        f"Total births       : {results.get('total_births', 0)}",
+        f"Kitten survival    : {results.get('kitten_survival_rate', 0) * 100:.1f}%",
+        f"Est. program cost  : ${round(results.get('total_cost', 0)):,}",
+        f"Litters/yr (used)  : {results.get('effective_litters_per_year', '-')}",
+    ]
+    if stochastic:
+        stats.append(f"Simulations        : {results['n_simulations']}")
+        stats.append(f"P(near-eradication): {results.get('prob_near_eradication', 0) * 100:.0f}%")
+
+    # Parameters column
+    def fc_val(pct_key, abs_key):
+        if p.get('fc_unit') == 'absolute':
+            return f"{int(p.get(abs_key, 0))} (abs)"
+        return f"{p.get(pct_key, 0):g}%"
+    cc = 'infinite (no cap)' if not p.get('use_carrying_capacity', True) else p.get('focal_carrying_capacity', '-')
+    params_lines = [
+        f"Duration           : {p.get('simulation_years', '-')} years",
+        f"Initial adults     : {p.get('focal_population', '-')}",
+        f"Male percentage    : {p.get('male_percentage', '-')}%",
+        f"Carrying capacity  : {cc}",
+        f"Adult mortality    : {p.get('adult_mortality_annual', '-')}%/yr",
+        f"Arrivals / year    : {p.get('arrivals_per_year', '-')}",
+        f"Departures / year  : {p.get('departures_per_year', '-')}",
+        f"Litters / year     : {p.get('litters_per_year', '-')}",
+        f"Male breeding cap  : {p.get('male_breeding_capacity_per_day', '-')} /male/day",
+        f"FC timing          : {p.get('fc_timing', '-')}",
+        f"Females on AMH     : {fc_val('pct_females_amh', 'fc_females_amh_absolute')}",
+        f"Females spayed     : {fc_val('pct_females_spayed', 'fc_females_spayed_absolute')}",
+        f"Males neutered     : {fc_val('pct_males_neutered', 'fc_males_neutered_absolute')}",
+    ]
+
+    fig.text(0.10, 0.47, 'Results', fontsize=13, fontweight='bold', color='#1e3a5f')
+    fig.text(0.10, 0.44, '\n'.join(stats), va='top', fontsize=9.5, family='monospace')
+    fig.text(0.55, 0.47, 'Parameters', fontsize=13, fontweight='bold', color='#1e3a5f')
+    fig.text(0.55, 0.44, '\n'.join(params_lines), va='top', fontsize=9.5, family='monospace')
+
+    fig.text(0.5, 0.035,
+             'This simulator is for educational and exploratory purposes only — not for policy,\n'
+             'medical, or veterinary decisions.        Created by Sonia Mahir',
+             ha='center', fontsize=7.5, color='gray')
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='pdf')
+    plt.close(fig)
+    buffer.seek(0)
+    return buffer
+
+
+@app.route('/export_pdf', methods=['POST'])
+def export_pdf():
+    """Export a single run's results as a downloadable PDF report."""
+    try:
+        data = request.json
+        results = data.get('results')
+        if not results:
+            return jsonify({'success': False, 'error': 'No results to export'}), 400
+        pdf = generate_pdf_report(results, data.get('parameters', {}), data.get('name', ''))
+        return send_file(
+            pdf, mimetype='application/pdf', as_attachment=True,
+            download_name=f'cat_simulation_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+    except Exception as e:
+        import traceback
+        return jsonify({'success': False, 'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+
 if __name__ == '__main__':
     os.makedirs('templates', exist_ok=True)
 
