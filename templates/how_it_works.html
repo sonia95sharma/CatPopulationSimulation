@@ -134,22 +134,44 @@
                 and males around {{ v.male_maturity }} months.
             </p>
 
-            <h2>Time steps</h2>
+            <h2>How the model moves through time</h2>
             <p>
-                The clock advances in <strong>6-month steps</strong>. Cats are seasonally polyestrous, so breeding
-                happens in the January–September season; the model weights each half-year by how much of it falls in
-                that season, while keeping the <em>total</em> litters per year equal to the value you set.
+                The model advances in <strong>6-month steps</strong>, so one year is two steps and a 10-year run is
+                20 steps. In every step it works out the same sequence of events — who mates, how many kittens are
+                born and survive, which adults die, which youngsters grow up, and who moves in or out. Whatever the
+                colony looks like at the end of a step becomes the starting point for the next one, and the running
+                tally is what you see plotted over time.
+            </p>
+            <p>
+                Cats breed seasonally — roughly <strong>January to September</strong> in temperate climates — so the
+                model concentrates breeding in that window. Importantly, the <em>number</em> of litters a female has
+                in a year always equals the "litters per year" you set; the season only affects <em>when</em> in the
+                year those litters happen, not how many.
             </p>
 
             <h2>What happens in each step</h2>
-            <div class="step"><span class="num">1</span><strong>Management is applied.</strong> If you chose <em>yearly</em> treatment, a share of the currently-intact cats is spayed, given AMH, or neutered this year. (If you chose <em>one-time</em>, this only happened at the very start.)</div>
-            <div class="step"><span class="num">2</span><strong>Mating is resolved.</strong> Intact males have a limited number of matings per day. Females compete for that attention based on how often they actually mate (from trial data): intact females mate on relatively few days because they are pregnant or recovering most of the year, while AMH females never conceive and so stay available on more days. Spayed females do not cycle at all. If demand for males exceeds their capacity, only a fraction of intact females conceive.</div>
-            <div class="step"><span class="num">3</span><strong>Litters are born.</strong> Each breeding female produces her share of the year's litters (mean {{ v.mean_litter }} kittens each). Fecundity is capped at ~{{ v.max_litters }} litters/year, the most physically possible given gestation ({{ v.gestation }} d) + postpartum recovery ({{ v.postpartum }} d) + time to re-conceive.</div>
-            <div class="step"><span class="num">4</span><strong>Kittens face high mortality.</strong> Kitten death is <em>density-dependent</em>: from {{ v.base_kmort }}% at low density up to {{ v.high_kmort }}% as the colony nears its carrying capacity. This is the model's main brake on growth.</div>
-            <div class="step"><span class="num">5</span><strong>Adults die at their yearly rate.</strong> A constant annual mortality (which you set) is applied to every adult and juvenile group.</div>
-            <div class="step"><span class="num">6</span><strong>Juveniles grow up.</strong> Surviving kittens spend time in the juvenile stage and then graduate into the intact-adult groups (about 12 months to first breeding).</div>
-            <div class="step"><span class="num">7</span><strong>Cats arrive and leave.</strong> Arrivals (immigration/abandonment) add intact cats; departures/removals (emigration, adoption, shelter pickup) take cats out. Both assume a 50:50 sex ratio.</div>
-            <div class="step"><span class="num">8</span><strong>Carrying capacity is enforced.</strong> If you enabled a maximum, any excess above it is trimmed. If you disabled it, the colony can grow without limit.</div>
+            <p>Think of each 6-month step as running through birth, death, and movement, in this order:</p>
+
+            <div class="step"><span class="num">1</span><strong>This year's management is applied.</strong> If you're running a <em>yearly</em> program, this round of spaying, AMH, or neutering is applied now to the cats that are still intact. (A <em>one-time</em> program treated cats only at the very start and never again — so its effect gradually fades as those treated cats die and untreated newcomers replace them.)</div>
+
+            <div class="step"><span class="num">2</span><strong>Mating &amp; who gets pregnant.</strong> This is the heart of the model. Only intact males can father kittens, and each can service just so many matings a day — so <em>male attention is a limited resource</em>. A fertile (intact) female needs some of that attention to conceive, but she is only "available" on a small share of days, because she spends most of the year pregnant or nursing. A <em>spayed</em> female is out of the running entirely — she never cycles. An <em>AMH</em> female, though, keeps cycling and never gets pregnant, so she stays available far more of the time, competing for the same males without ever producing kittens. If the fertile females together want more mating than the males can supply, only a fraction of them conceive. (When males are plentiful — the usual case — everyone who wants to breed does, and AMH and spaying end up looking the same. See the next section.)</div>
+
+            <div class="step"><span class="num">3</span><strong>Litters are born.</strong> Every female who bred produces her share of the year's litters (about {{ v.mean_litter }} kittens per litter). A queen can't breed endlessly: pregnancy ({{ v.gestation }} days) plus recovery ({{ v.postpartum }} days) plus the time to come back into heat means she can fit at most <strong>~{{ v.max_litters }} litters a year</strong>, so the model caps her there.</div>
+
+            <div class="step"><span class="num">4</span><strong>Most kittens don't make it.</strong> Kitten survival is the model's main brake on growth, and it gets worse as the colony fills up: from about <strong>{{ v.base_kmort }}%</strong> dying when the colony is small and resources are ample, rising to <strong>{{ v.high_kmort }}%</strong> as it approaches its carrying capacity. ("Density" just means how full the colony is relative to that maximum.)</div>
+
+            <div class="step"><span class="num">5</span><strong>Adults die.</strong> A yearly death rate that you set removes a slice of every adult and juvenile group.</div>
+
+            <div class="step"><span class="num">6</span><strong>Youngsters grow up.</strong> Surviving kittens aren't ready to breed yet. They wait in a juvenile stage and only join the breeding adults about <strong>a year after birth</strong>, matching when cats actually reach sexual maturity. This delay matters — without it, kittens would breed far too young and the colony would balloon unrealistically.</div>
+
+            <div class="step"><span class="num">7</span><strong>Cats come and go.</strong> New intact cats arrive (immigration, abandoned pets) and others leave (they wander off, get adopted, or are removed by a shelter). You set these as whole cats per year, split evenly between males and females.</div>
+
+            <div class="step"><span class="num">8</span><strong>The ceiling is applied.</strong> If you set a maximum colony size, any overflow above it is trimmed away at the end of the step. Turn the maximum off and the colony can grow without limit.</div>
+
+            <p style="margin-top:14px;">
+                The balance of these forces — how many kittens survive to breed versus how many cats die or leave —
+                is what makes the population on the chart climb, hold steady, or fall.
+            </p>
 
             <h2>The male-attention idea (why AMH might differ from spaying)</h2>
             <div class="callout">

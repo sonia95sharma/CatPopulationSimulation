@@ -71,7 +71,8 @@ MATURATION_LAG_TIMESTEPS = 1
 # AMH-treated female never conceives, so she stays available and mates on more days.
 # This difference in availability is what lets AMH females draw male attention away
 # from fertile females. Values from the prepubertal AMH gene-therapy trial: treated
-# females bred on ~34-47% of days vs ~15% for intact controls (PMC12663202).
+# females bred on ~34-47% of days vs ~15% for intact controls
+# (Nature Communications 2025; doi:10.1038/s41467-025-65780-2).
 INTACT_BREEDING_DAY_FRACTION = 0.15
 AMH_BREEDING_DAY_FRACTION = 0.40
 

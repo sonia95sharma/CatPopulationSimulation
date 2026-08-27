@@ -135,9 +135,9 @@ def assumptions():
                  'value': f"intact {int(INTACT_BREEDING_DAY_FRACTION*100)}% of days / "
                           f"AMH-treated {int(AMH_BREEDING_DAY_FRACTION*100)}% of days",
                  'source': 'Prepubertal AMH gene-therapy trial: treated females bred on ~34–47% of days vs ~15% '
-                           'for intact controls (PMC12663202). Treated females never conceive, so they stay '
-                           'available to mate more than intact females, which are pregnant or recovering most of '
-                           'the year.'},
+                           'for intact controls (Nature Communications 2025; doi:10.1038/s41467-025-65780-2). '
+                           'Treated females never conceive, so they stay available to mate more than intact '
+                           'females, which are pregnant or recovering most of the year.'},
                 {'param': 'AMH contraceptive efficacy',
                  'value': '100% (modeled)',
                  'source': 'Adult and prepubertal trials both reported zero pregnancies in treated females (small '
