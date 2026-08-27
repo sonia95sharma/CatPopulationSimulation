@@ -637,14 +637,20 @@ def export_comparison():
 
 
 if __name__ == '__main__':
-    import os
     os.makedirs('templates', exist_ok=True)
+
+    # Bind all interfaces automatically when the platform provides a PORT (Render,
+    # Railway, Heroku, etc.); otherwise stay local-only for safety. For production
+    # prefer a real WSGI server: gunicorn enhanced_simulation_ui:app --bind 0.0.0.0:$PORT
+    port = int(os.environ.get('PORT', os.environ.get('CATSIM_PORT', '5001')))
+    default_host = '0.0.0.0' if os.environ.get('PORT') else '127.0.0.1'
+    host = os.environ.get('CATSIM_HOST', default_host)
+    debug = os.environ.get('CATSIM_DEBUG', '0') == '1'
 
     print("="*70)
     print(" ENHANCED POPULATION SIMULATION UI")
     print("="*70)
-    print("\nStarting server with detailed biological parameters...")
-    print("Open your browser to: http://localhost:5001")
+    print(f"\nStarting server on http://{host}:{port}")
     print("\nFeatures:")
     print("  • Estrous cycle modeling (16-day cycle, 7-day estrus)")
     print("  • Male attention / monopolization dynamics")
@@ -654,9 +660,4 @@ if __name__ == '__main__':
     print("  • Fixed biology from biological_parameters.py; management params via sliders")
     print("="*70)
 
-    # Safe defaults: local-only host, debugger off. Override via environment variables
-    # for development or LAN access, e.g. CATSIM_HOST=0.0.0.0 CATSIM_DEBUG=1
-    host = os.environ.get('CATSIM_HOST', '127.0.0.1')
-    debug = os.environ.get('CATSIM_DEBUG', '0') == '1'
-    port = int(os.environ.get('CATSIM_PORT', '5001'))
     app.run(debug=debug, host=host, port=port)
