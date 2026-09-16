@@ -143,8 +143,8 @@
                 tally is what you see plotted over time.
             </p>
             <p>
-                Cats breed seasonally — roughly <strong>January to September</strong> in temperate climates — so the
-                model concentrates breeding in that window. Importantly, the <em>number</em> of litters a female has
+                Cats breed seasonally — roughly <strong>January to September</strong> in temperate climates in the
+                Northern Hemisphere — so the model concentrates breeding in that window. Importantly, the <em>number</em> of litters a female has
                 in a year always equals the "litters per year" you set; the season only affects <em>when</em> in the
                 year those litters happen, not how many.
             </p>
@@ -152,7 +152,7 @@
             <h2>What happens in each step</h2>
             <p>Think of each 6-month step as running through birth, death, and movement, in this order:</p>
 
-            <div class="step"><span class="num">1</span><strong>This year's management is applied.</strong> If you're running a <em>yearly</em> program, this round of spaying, AMH, or neutering is applied now to the cats that are still intact. (A <em>one-time</em> program treated cats only at the very start and never again — so its effect gradually fades as those treated cats die and untreated newcomers replace them.)</div>
+            <div class="step"><span class="num">1</span><strong>This year's management is applied.</strong> If you're running a <em>yearly</em> program, this round of spaying, AMH, or neutering is applied now to the cats that are still intact. (A <em>one-time</em> program is applied only at the very start and never again — so its effect gradually fades as AMH-treated, spayed or neutered cats die and fertile newcomers replace them.)</div>
 
             <div class="step"><span class="num">2</span><strong>Mating &amp; who gets pregnant.</strong> This is the heart of the model. Only intact males can father kittens, and each can service just so many matings a day — so <em>male attention is a limited resource</em>. A fertile (intact) female needs some of that attention to conceive, but she is only "available" on a small share of days, because she spends most of the year pregnant or nursing. A <em>spayed</em> female is out of the running entirely — she never cycles. An <em>AMH</em> female, though, keeps cycling and never gets pregnant, so she stays available far more of the time, competing for the same males without ever producing kittens. If the fertile females together want more mating than the males can supply, only a fraction of them conceive. (When males are plentiful — the usual case — everyone who wants to breed does, and AMH and spaying end up looking the same. See the next section.)</div>
 
@@ -160,7 +160,7 @@
 
             <div class="step"><span class="num">4</span><strong>Most kittens don't make it.</strong> Kitten survival is the model's main brake on growth, and it gets worse as the colony fills up: from about <strong>{{ v.base_kmort }}%</strong> dying when the colony is small and resources are ample, rising to <strong>{{ v.high_kmort }}%</strong> as it approaches its carrying capacity. ("Density" just means how full the colony is relative to that maximum.)</div>
 
-            <div class="step"><span class="num">5</span><strong>Adults die.</strong> A yearly death rate that you set removes a slice of every adult and juvenile group.</div>
+            <div class="step"><span class="num">5</span><strong>Adults die.</strong> A yearly death rate that you set removes a slice of every adult group. (Juveniles are not subject to it — pre-breeding deaths are already captured by the kitten mortality above.)</div>
 
             <div class="step"><span class="num">6</span><strong>Youngsters grow up.</strong> Surviving kittens aren't ready to breed yet. They wait in a juvenile stage and only join the breeding adults about <strong>a year after birth</strong>, matching when cats actually reach sexual maturity. This delay matters — without it, kittens would breed far too young and the colony would balloon unrealistically.</div>
 
@@ -175,18 +175,20 @@
 
             <h2>The male-attention idea (why AMH might differ from spaying)</h2>
             <div class="callout">
-                Each male can service only so many females per day. Spaying <em>removes</em> a female from the mating
-                pool entirely. AMH prevents pregnancy but leaves the female cycling and available — and because she
-                never becomes pregnant, she stays available to mate far more of the time than an intact female (who is
-                pregnant or recovering most of the year). In a trial, treated females mated on roughly 40% of days
-                versus about 15% for intact controls. If males are a <em>limiting</em> resource, those extra AMH
-                matings could tie up male attention and reduce fertile females' breeding — an added effect spaying
-                cannot produce.
+                High blood concentrations of anti-Müllerian hormone (AMH) in females prevent ovulation and pregnancy.
+                In a recent trial, female cats that received a one-time injection of an AMH-based contraceptive were
+                completely infertile, but remained cycling. They mated on roughly 40% of days versus about 15% for
+                intact controls. Because AMH-treated females never become pregnant, they stay available to mate far
+                more of the time than an intact female (who is pregnant or recovering most of the year).
                 <br><br>
-                <strong>Important caveat:</strong> this is a <em>hypothesis</em>, not an established population-level
-                effect, and it only matters when intact males are genuinely scarce (uncommon, since a few males can
-                service many females). In most settings the simulator shows AMH and spaying performing almost
-                identically.
+                Since each male can service only so many females per day, male attention can be a limited resource.
+                Spaying removes a female from the mating pool entirely since she no longer mates, which is not the
+                case with AMH-treated females. Those extra AMH matings could tie up male attention and reduce fertile
+                females' breeding — an added effect spaying cannot produce.
+                <br><br>
+                <strong>Important caveat:</strong> this is a hypothesis, not an established population-level effect,
+                and it only matters when intact males are genuinely scarce (uncommon, since a few males can service
+                many females). In most settings the simulator shows AMH and spaying performing almost identically.
             </div>
 
             <h2>Interventions you can combine</h2>
@@ -201,7 +203,7 @@
                 With <strong>1 simulation</strong>, the model runs a single, fully predictable trajectory. Set the
                 <strong>number of simulations</strong> higher and it becomes <strong>stochastic</strong>: births and
                 deaths are drawn at random each step, with the randomness scaling by population size (small colonies
-                swing more and can die out; large ones are steadier). The app then shows the <strong>average</strong>
+                swing more and can die out; large ones are steadier). The simulation then shows the <strong>average</strong>
                 trajectory, a <strong>90% confidence band</strong>, and the <strong>probability of near-eradication</strong>
                 (runs ending below one cat).
             </p>
@@ -218,7 +220,7 @@
                 <li>6-month steps and a single juvenile stage, rather than tracking exact ages.</li>
                 <li>Adult mortality is one constant rate (not different by sex or reproductive status).</li>
                 <li>Mating is a simplified "attention budget," not mechanistic mate choice.</li>
-                <li>AMH is treated as fully effective and permanent (no waning between doses).</li>
+                <li>AMH is considered fully effective and permanent.</li>
                 <li>No disease, predation, or other outside forces.</li>
             </ul>
 

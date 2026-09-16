@@ -135,14 +135,16 @@ def assumptions():
                  'value': f"intact {int(INTACT_BREEDING_DAY_FRACTION*100)}% of days / "
                           f"AMH-treated {int(AMH_BREEDING_DAY_FRACTION*100)}% of days",
                  'source': 'Prepubertal AMH gene-therapy trial: treated females bred on ~34–47% of days vs ~15% '
-                           'for intact controls (Nature Communications 2025; doi:10.1038/s41467-025-65780-2). '
-                           'Treated females never conceive, so they stay available to mate more than intact '
-                           'females, which are pregnant or recovering most of the year.'},
+                           'for intact controls (Godin et al. 2025). Treated females never conceive, so they stay '
+                           'available to mate more than intact females, which are pregnant or recovering most of '
+                           'the year.'},
                 {'param': 'AMH contraceptive efficacy',
                  'value': '100% (modeled)',
-                 'source': 'Adult and prepubertal trials both reported zero pregnancies in treated females (small '
-                           'samples). Modeled as fully effective and permanent, though durability is demonstrated '
-                           'only to ~3 years.'},
+                 'source': 'Adult (Vansandt et al. 2023) and prepubertal (Godin et al. 2025) trials both reported '
+                           'zero pregnancies in a total of 13 AMH-treated females. Although contraceptive efficacy '
+                           'has only been demonstrated for up to 2 years, the intervention is modeled as fully '
+                           'effective and permanent because elevated AMH concentrations persist for more than 6.5 '
+                           'years.'},
             ],
         },
     ]

@@ -72,7 +72,7 @@ MATURATION_LAG_TIMESTEPS = 1
 # This difference in availability is what lets AMH females draw male attention away
 # from fertile females. Values from the prepubertal AMH gene-therapy trial: treated
 # females bred on ~34-47% of days vs ~15% for intact controls
-# (Nature Communications 2025; doi:10.1038/s41467-025-65780-2).
+# (Godin et al. 2025, Nature Communications; doi:10.1038/s41467-025-65780-2).
 INTACT_BREEDING_DAY_FRACTION = 0.15
 AMH_BREEDING_DAY_FRACTION = 0.40
 

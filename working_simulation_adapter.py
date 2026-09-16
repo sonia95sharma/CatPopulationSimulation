@@ -256,15 +256,14 @@ def run_adapted_simulation(params):
         kitten_deaths = kitten_count - surviving_kittens
         total_kitten_deaths += kitten_deaths
 
-        # --- Adult mortality (applied to adults and to maturing juveniles) ---
+        # --- Adult mortality (adult groups only) ---
+        # Juveniles are NOT subject to this: pre-breeding deaths are already captured by
+        # the density-dependent kitten mortality applied at birth.
         intact_females = _survivors(intact_females, timestep_adult_survival, rng)
         spayed_females = _survivors(spayed_females, timestep_adult_survival, rng)
         amh_females = _survivors(amh_females, timestep_adult_survival, rng)
         intact_males = _survivors(intact_males, timestep_adult_survival, rng)
         neutered_males = _survivors(neutered_males, timestep_adult_survival, rng)
-        for cohort in juvenile_queue:
-            cohort[0] = _survivors(cohort[0], timestep_adult_survival, rng)
-            cohort[1] = _survivors(cohort[1], timestep_adult_survival, rng)
 
         # --- Graduate matured juveniles into the intact adult pool ---
         if len(juvenile_queue) >= maturation_lag:
