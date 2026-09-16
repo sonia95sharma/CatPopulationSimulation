@@ -94,7 +94,7 @@ Unmanaged, open/uncapped population:
 
 | | Model | Paper |
 |---|---|---|
-| Annual growth rate | ~20.5%/yr | 18–20% |
+| Annual growth rate | ~19%/yr | 18–20% |
 
 *Note:* the 25%-sterilization case suppresses slightly more than Boone reports; this is sensitive to the exact trapping protocol (one-time vs sustained, both-sex vs female-only), which the paper models in more detail than this exploratory tool.
 

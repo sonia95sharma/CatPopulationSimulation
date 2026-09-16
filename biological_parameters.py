@@ -47,7 +47,7 @@ MAX_LITTER_SIZE = 9
 # carrying capacity. Calibrated so the model reproduces the unmanaged growth rate of
 # Miller et al. 2014 (~18-20%/yr) and the sterilization response of Boone et al. 2019;
 # these rates are within the high kitten mortality reported for free-roaming cats.
-BASE_KITTEN_MORTALITY = 0.90           # at low density
+BASE_KITTEN_MORTALITY = 0.91           # at low density
 HIGH_DENSITY_KITTEN_MORTALITY = 0.95   # at carrying capacity
 
 # --- Breeding season (temperate; cats are seasonally polyestrous) ---
